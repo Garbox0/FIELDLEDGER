@@ -20,13 +20,14 @@ from app.events import router as events_router
 from app.ledger import LedgerClient, get_ledger_client, ledger_enabled
 from app.ledger import router as ledger_router
 from app.storage import ObjectStorage, get_storage
+from app.telemetry import router as telemetry_router
 
 
 STATIC_DIR = Path(__file__).parent / "static"
 PUBLIC_DEMO = os.getenv("PUBLIC_DEMO_VIEWER", "false").lower() == "true"
 app = FastAPI(
     title="FieldLedger API",
-    version="0.5.0",
+    version="0.6.0",
     description="Integridad de activos, mantenimiento y verificación con Fabric.",
     docs_url=None if PUBLIC_DEMO else "/docs",
     redoc_url=None if PUBLIC_DEMO else "/redoc",
@@ -46,6 +47,7 @@ app.include_router(auth_router, prefix="/api/v1")
 app.include_router(assets_router, prefix="/api/v1")
 app.include_router(events_router, prefix="/api/v1")
 app.include_router(documents_router, prefix="/api/v1")
+app.include_router(telemetry_router, prefix="/api/v1")
 app.include_router(ledger_router, prefix="/api/v1")
 
 

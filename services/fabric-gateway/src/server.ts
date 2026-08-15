@@ -60,6 +60,10 @@ const server = createServer(async (request, response) => {
 
     const documentMatch = request.method === "GET" && url.pathname.match(/^\/internal\/ledger\/documents\/([a-fA-F0-9]{64})$/);
     if (documentMatch) return json(response, 200, await evaluate("AuditorOrg", "GetDocumentByHash", documentMatch[1].toLowerCase()));
+
+    const telemetryMatch = request.method === "GET" && url.pathname.match(/^\/internal\/ledger\/telemetry\/([a-zA-Z0-9_-]+)$/);
+    if (telemetryMatch) return json(response, 200, await evaluate("AuditorOrg", "GetTelemetryBatch", telemetryMatch[1]));
+
     return json(response, 404, { detail: "Not found" });
   } catch (error) {
     const message = error instanceof Error ? error.message : "unknown error";

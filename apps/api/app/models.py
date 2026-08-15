@@ -8,13 +8,15 @@ from sqlalchemy import (
     Date,
     DateTime,
     Enum as SqlEnum,
+    Float,
     ForeignKey,
+    Integer,
     JSON,
     String,
     Text,
     UniqueConstraint,
 )
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
 
@@ -63,6 +65,16 @@ class AssetEventType(StrEnum):
     FAILURE = "FAILURE"
     RETURN_TO_SERVICE = "RETURN_TO_SERVICE"
     DECOMMISSION = "DECOMMISSION"
+
+
+class DocumentCategory(StrEnum):
+    WORK_ORDER = "WORK_ORDER"
+    CALIBRATION_CERT = "CALIBRATION_CERT"
+    INSPECTION_PHOTO = "INSPECTION_PHOTO"
+    NDT_REPORT = "NDT_REPORT"
+    LAB_ANALYSIS = "LAB_ANALYSIS"
+    DECOMMISSION_RECORD = "DECOMMISSION_RECORD"
+    OTHER = "OTHER"
 
 
 class EventStatus(StrEnum):
@@ -170,6 +182,8 @@ class Asset(Base):
         default=AssetCriticality.MEDIUM,
         index=True,
     )
+    decommissioned_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    decommission_reason: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utc_now, onupdate=utc_now
@@ -248,15 +262,23 @@ class AssetEvent(Base):
     rejection_reason: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
+    documents: Mapped[list["AssetDocument"]] = relationship(
+        "AssetDocument", back_populates="event", cascade="all, delete-orphan"
+    )
+
 
 class AssetDocument(Base):
     __tablename__ = "asset_documents"
     __table_args__ = (
         CheckConstraint(
+            "category IN ('WORK_ORDER', 'CALIBRATION_CERT', 'INSPECTION_PHOTO', "
+            "'NDT_REPORT', 'LAB_ANALYSIS', 'DECOMMISSION_RECORD', 'OTHER')",
+            name="document_category",
+        ),
+        CheckConstraint(
             "ledger_status IN ('PENDING', 'SUBMITTED', 'COMMITTED', 'FAILED')",
             name="document_ledger_status",
         ),
-        UniqueConstraint("event_id"),
         UniqueConstraint("object_key"),
     )
 
@@ -267,6 +289,16 @@ class AssetDocument(Base):
     asset_id: Mapped[str] = mapped_column(
         ForeignKey("assets.asset_id", ondelete="RESTRICT"), index=True
     )
+    category: Mapped[DocumentCategory] = mapped_column(
+        SqlEnum(
+            DocumentCategory,
+            name="document_category",
+            native_enum=False,
+            validate_strings=True,
+        ),
+        default=DocumentCategory.OTHER,
+        index=True,
+    )
     original_filename: Mapped[str] = mapped_column(String(255))
     content_type: Mapped[str] = mapped_column(String(100))
     size_bytes: Mapped[int] = mapped_column(BigInteger)
@@ -275,6 +307,7 @@ class AssetDocument(Base):
     uploaded_by: Mapped[str] = mapped_column(
         ForeignKey("users.username", ondelete="RESTRICT"), index=True
     )
+    notes: Mapped[str | None] = mapped_column(String(500))
     ledger_tx_id: Mapped[str | None] = mapped_column(String(128), unique=True)
     ledger_status: Mapped[LedgerStatus] = mapped_column(
         SqlEnum(
@@ -288,13 +321,15 @@ class AssetDocument(Base):
     )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
+    event: Mapped["AssetEvent"] = relationship("AssetEvent", back_populates="documents")
+
 
 class LedgerOutbox(Base):
     __tablename__ = "ledger_outbox"
     __table_args__ = (
         CheckConstraint(
             "action IN ('REGISTER_ASSET', 'PROPOSE_EVENT', 'REVIEW_EVENT', "
-            "'REGISTER_DOCUMENT')",
+            "'REGISTER_DOCUMENT', 'DECOMMISSION_ASSET', 'REGISTER_TELEMETRY_BATCH')",
             name="ledger_outbox_action",
         ),
         CheckConstraint(
@@ -329,4 +364,58 @@ class LedgerOutbox(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utc_now, onupdate=utc_now
+    )
+
+
+class TelemetryBatch(Base):
+    __tablename__ = "telemetry_batches"
+    __table_args__ = (
+        CheckConstraint(
+            "ledger_status IN ('PENDING', 'SUBMITTED', 'COMMITTED', 'FAILED')",
+            name="batch_ledger_status",
+        ),
+    )
+
+    batch_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    asset_id: Mapped[str] = mapped_column(
+        ForeignKey("assets.asset_id", ondelete="RESTRICT"), index=True
+    )
+    period_start: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    period_end: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    reading_count: Mapped[int] = mapped_column()
+    merkle_root: Mapped[str] = mapped_column(String(64), index=True)
+    ledger_tx_id: Mapped[str | None] = mapped_column(String(128), unique=True)
+    ledger_status: Mapped[LedgerStatus] = mapped_column(
+        SqlEnum(
+            LedgerStatus,
+            name="batch_ledger_status",
+            native_enum=False,
+            validate_strings=True,
+        ),
+        default=LedgerStatus.PENDING,
+        index=True,
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class TelemetryReading(Base):
+    __tablename__ = "telemetry_readings"
+
+    id: Mapped[int] = mapped_column(
+        BigInteger().with_variant(Integer, "sqlite"),
+        primary_key=True,
+        autoincrement=True,
+    )
+    asset_id: Mapped[str] = mapped_column(
+        ForeignKey("assets.asset_id", ondelete="RESTRICT"), index=True
+    )
+    timestamp: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, index=True
+    )
+    pressure_psi: Mapped[float | None] = mapped_column(Float)
+    temperature_c: Mapped[float | None] = mapped_column(Float)
+    vibration_mms: Mapped[float | None] = mapped_column(Float)
+    flow_rate_bpd: Mapped[float | None] = mapped_column(Float)
+    batch_id: Mapped[str | None] = mapped_column(
+        ForeignKey("telemetry_batches.batch_id", ondelete="SET NULL"), index=True
     )

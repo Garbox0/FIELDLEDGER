@@ -6,6 +6,8 @@ const state = {
   assets: [],
   events: [],
   operations: [],
+  telemetryReadings: [],
+  telemetryBatches: [],
   selectedAsset: null,
   activeEventId: null,
   refreshing: false,
@@ -14,17 +16,56 @@ const state = {
 
 const roles = {
   createAsset: new Set(["ADMIN", "OPERATOR"]),
+  decommission: new Set(["ADMIN", "OPERATOR"]),
   propose: new Set(["CONTRACTOR"]),
   review: new Set(["ADMIN", "OPERATOR"]),
   upload: new Set(["ADMIN", "OPERATOR", "CONTRACTOR", "AUDITOR"]),
   verify: new Set(["ADMIN", "OPERATOR", "AUDITOR"]),
+  telemetry: new Set(["ADMIN", "OPERATOR"]),
 };
 
 const labels = {
   roles: { ADMIN: "ADMIN", OPERATOR: "OPERADORA", CONTRACTOR: "CONTRATISTA", AUDITOR: "AUDITOR", VIEWER: "LECTURA" },
-  status: { ACTIVE: "Activo", MAINTENANCE: "En mantenimiento", OUT_OF_SERVICE: "Fuera de servicio", DECOMMISSIONED: "Dado de baja", PROPOSED: "Propuesto", APPROVED: "Aprobado", REJECTED: "Rechazado", PENDING: "Pendiente", SUBMITTED: "Enviado", COMMITTED: "Confirmado", FAILED: "Fallido" },
-  actions: { REGISTER_ASSET: "Alta de activo", PROPOSE_EVENT: "Propuesta", REGISTER_DOCUMENT: "Evidencia", REVIEW_EVENT: "Decisión" },
-  types: { PREVENTIVE_MAINTENANCE: "Preventivo", CORRECTIVE_MAINTENANCE: "Correctivo", PART_REPLACEMENT: "Reemplazo" },
+  status: {
+    ACTIVE: "Activo",
+    MAINTENANCE: "En mantenimiento",
+    OUT_OF_SERVICE: "Fuera de servicio",
+    DECOMMISSIONED: "Desafectado",
+    PROPOSED: "Propuesto",
+    APPROVED: "Aprobado",
+    REJECTED: "Rechazado",
+    PENDING: "Pendiente",
+    SUBMITTED: "Enviado",
+    COMMITTED: "Confirmado",
+    FAILED: "Fallido",
+  },
+  actions: {
+    REGISTER_ASSET: "Alta de activo",
+    PROPOSE_EVENT: "Propuesta",
+    REGISTER_DOCUMENT: "Evidencia",
+    REVIEW_EVENT: "Decisión",
+    DECOMMISSION_ASSET: "Baja formal",
+    REGISTER_TELEMETRY_BATCH: "Lote telemetría",
+  },
+  types: {
+    PREVENTIVE_MAINTENANCE: "Preventivo",
+    CORRECTIVE_MAINTENANCE: "Correctivo",
+    PART_REPLACEMENT: "Reemplazo de componente",
+    INSPECTION: "Inspección de integridad",
+    PRESSURE_TEST: "Prueba hidrostática",
+    CALIBRATION: "Calibración",
+    CERTIFICATION: "Certificación de aptitud",
+    DECOMMISSION: "Baja y abandono",
+  },
+  categories: {
+    WORK_ORDER: "Orden de Trabajo (PTW)",
+    CALIBRATION_CERT: "Certificado Calibración",
+    INSPECTION_PHOTO: "Foto de Inspección",
+    NDT_REPORT: "Ensayo No Destructivo (NDT)",
+    LAB_ANALYSIS: "Análisis de Laboratorio",
+    DECOMMISSION_RECORD: "Acta de Desafectación",
+    OTHER: "Evidencia General",
+  },
 };
 
 const errors = {
@@ -32,10 +73,11 @@ const errors = {
   "Too many login attempts": "Demasiados intentos. Esperá un minuto y volvé a probar.",
   "Role is not allowed to perform this action": "Tu rol no permite realizar esta acción.",
   "Asset already exists": "Ya existe un activo con ese ID.",
+  "Asset is already decommissioned": "El activo ya fue desafectado formalmente.",
   "Event or idempotency key already exists": "El evento ya existe. Generá una nueva propuesta.",
-  "This event already has a document": "Este evento ya tiene una evidencia primaria.",
   "Reviewed events cannot accept documents": "Un evento revisado ya no acepta documentos.",
   "Event has already been reviewed": "El evento ya fue revisado.",
+  "No unbatched telemetry readings available to anchor": "No hay nuevas lecturas sin anclar para este activo.",
   "Fabric verification failed": "No fue posible consultar Fabric. Intentá nuevamente.",
 };
 
@@ -175,6 +217,8 @@ function logout(notify = true) {
   state.assets = [];
   state.events = [];
   state.operations = [];
+  state.telemetryReadings = [];
+  state.telemetryBatches = [];
   state.selectedAsset = null;
   clearInterval(state.timer);
   state.timer = null;
@@ -209,6 +253,8 @@ function applyPermissions() {
   const canCreate = roles.createAsset.has(role);
   $("#create-asset-button").hidden = !canCreate;
   $("#propose-button").hidden = !roles.propose.has(role);
+  $("#simulate-telemetry-btn").disabled = !roles.telemetry.has(role);
+  $("#anchor-batch-btn").disabled = !roles.telemetry.has(role);
   $("#verify-form").querySelector("button").disabled = !roles.verify.has(role);
   $("#verify-file").disabled = !roles.verify.has(role);
 
@@ -244,9 +290,22 @@ async function refreshAll(quiet = false) {
     state.assets = assets;
     state.operations = operations;
     state.selectedAsset = assets.find((asset) => asset.asset_id === selectedId) || assets[0] || null;
-    state.events = state.selectedAsset
-      ? await request(`/api/v1/assets/${encodeURIComponent(state.selectedAsset.asset_id)}/events?limit=500`)
-      : [];
+
+    if (state.selectedAsset) {
+      const [events, readings, batches] = await Promise.all([
+        request(`/api/v1/assets/${encodeURIComponent(state.selectedAsset.asset_id)}/events?limit=500`),
+        request(`/api/v1/assets/${encodeURIComponent(state.selectedAsset.asset_id)}/telemetry?limit=20`),
+        request(`/api/v1/assets/${encodeURIComponent(state.selectedAsset.asset_id)}/telemetry/batches`),
+      ]);
+      state.events = events;
+      state.telemetryReadings = readings;
+      state.telemetryBatches = batches;
+    } else {
+      state.events = [];
+      state.telemetryReadings = [];
+      state.telemetryBatches = [];
+    }
+
     render(isHealthy);
     if (!quiet) showToast("Datos actualizados.");
   } catch (problem) {
@@ -267,6 +326,7 @@ function render(isHealthy) {
   renderAssets();
   renderAssetDetail();
   renderEvents();
+  renderTelemetry();
   renderLedger();
 }
 
@@ -289,7 +349,7 @@ function renderAssets() {
       element("strong", null, asset.name),
       element("span", `criticality ${asset.criticality}`, asset.criticality),
       element("span", null, `${asset.asset_type} · ${asset.site}`),
-      element("span", "asset-id", asset.asset_id),
+      element("span", "asset-id", `${asset.asset_id} · ${translated("status", asset.status)}`),
     );
     button.addEventListener("click", () => selectAsset(asset));
     list.append(button);
@@ -299,10 +359,19 @@ function renderAssets() {
 async function selectAsset(asset) {
   state.selectedAsset = asset;
   try {
-    state.events = await request(`/api/v1/assets/${encodeURIComponent(asset.asset_id)}/events?limit=500`);
+    const [events, readings, batches] = await Promise.all([
+      request(`/api/v1/assets/${encodeURIComponent(asset.asset_id)}/events?limit=500`),
+      request(`/api/v1/assets/${encodeURIComponent(asset.asset_id)}/telemetry?limit=20`),
+      request(`/api/v1/assets/${encodeURIComponent(asset.asset_id)}/telemetry/batches`),
+    ]);
+    state.events = events;
+    state.telemetryReadings = readings;
+    state.telemetryBatches = batches;
+
     renderAssets();
     renderAssetDetail();
     renderEvents();
+    renderTelemetry();
     $("#event-count").textContent = state.events.length;
     $("#current-context").textContent = asset.name;
   } catch (problem) {
@@ -324,18 +393,34 @@ function renderAssetDetail() {
   headerCopy.append(element("p", "eyebrow", asset.asset_id), element("h3", null, asset.name), element("p", null, `${asset.asset_type} · ${asset.site}`));
   const header = element("div", "detail-header");
   header.append(headerCopy, element("span", "status-pill", translated("status", asset.status)));
+
   const grid = element("div", "detail-grid");
   [
-    ["Ubicación", asset.location], ["Criticidad", asset.criticality],
+    ["Ubicación / Pozo", asset.location], ["Criticidad", asset.criticality],
     ["Fabricante", asset.manufacturer], ["Número de serie", asset.serial_number],
     ["Operadora", asset.operator], ["Instalación", asset.installation_date],
-    ["Creado", formatDate(asset.created_at)], ["Actualizado", formatDate(asset.updated_at)],
+    ["Creado", formatDate(asset.created_at)], ["Estado", translated("status", asset.status)],
   ].forEach(([name, value]) => {
     const field = element("div", "detail-field");
     field.append(element("span", null, name), element("strong", null, value || "No informado"));
     grid.append(field);
   });
-  panel.append(header, grid, element("p", "detail-note", "PostgreSQL conserva el detalle operativo. La identidad compacta del activo se entrega a Fabric mediante la outbox."));
+
+  // Action buttons bar
+  const actionsBar = element("div", "detail-actions-bar");
+  const timelineBtn = element("button", "button button-secondary", "📜 Ver Trazabilidad / Timeline");
+  timelineBtn.type = "button";
+  timelineBtn.addEventListener("click", () => openTimeline(asset.asset_id));
+  actionsBar.append(timelineBtn);
+
+  if (asset.status !== "DECOMMISSIONED" && roles.decommission.has(state.user.role)) {
+    const decomBtn = element("button", "button button-ghost", "🛑 Desafectar Activo");
+    decomBtn.type = "button";
+    decomBtn.addEventListener("click", () => openDecommission(asset.asset_id));
+    actionsBar.append(decomBtn);
+  }
+
+  panel.append(header, grid, actionsBar, element("p", "detail-note", "PostgreSQL conserva el estado relacional operativo. La identidad, sus evidencias y sus lotes de telemetría se anclan de manera inmutable en Hyperledger Fabric."));
 }
 
 function statusBadge(value) {
@@ -347,7 +432,8 @@ function renderEvents() {
   const empty = $("#event-empty");
   body.replaceChildren();
   empty.hidden = state.events.length > 0;
-  empty.textContent = state.selectedAsset ? "Este activo todavía no tiene eventos." : "Seleccioná un activo para consultar su mantenimiento.";
+  empty.textContent = state.selectedAsset ? "Este activo todavía no tiene eventos registrados." : "Seleccioná un activo para consultar su mantenimiento.";
+
   state.events.forEach((event) => {
     const row = document.createElement("tr");
     const identity = element("div", "table-primary");
@@ -355,6 +441,29 @@ function renderEvents() {
     const eventCell = document.createElement("td"); eventCell.append(identity);
     const typeCell = element("td", null, translated("types", event.event_type));
     const ownerCell = element("td", null, `${event.performed_by} · ${event.organization}`);
+
+    // Evidencias (Multi-document list)
+    const docCell = document.createElement("td");
+    const docList = element("div", "doc-list");
+    if (event.documents && event.documents.length > 0) {
+      event.documents.forEach((doc) => {
+        const pill = element("button", "doc-pill");
+        pill.type = "button";
+        pill.append(
+          element("span", "doc-cat", translated("categories", doc.category)),
+          element("span", null, `${doc.original_filename} (${roundKb(doc.size_bytes)} KB)`),
+        );
+        pill.addEventListener("click", () => openPreview(doc));
+        docList.append(pill);
+      });
+    } else if (event.document_hash) {
+      const pill = element("span", "doc-pill", `Hash: ${event.document_hash.slice(0, 10)}…`);
+      docList.append(pill);
+    } else {
+      docList.append(element("span", "muted", "Sin evidencias"));
+    }
+    docCell.append(docList);
+
     const decisionCell = document.createElement("td"); decisionCell.append(statusBadge(event.status));
     const ledgerCell = document.createElement("td");
     ledgerCell.append(statusBadge(event.ledger_status));
@@ -363,20 +472,193 @@ function renderEvents() {
       tx.title = event.ledger_tx_id;
       ledgerCell.append(tx);
     }
+
     const actionsCell = document.createElement("td");
     const actions = element("div", "row-actions");
-    if (event.status === "PROPOSED" && !event.document_hash && roles.upload.has(state.user.role)) {
-      actions.append(actionButton("Adjuntar", () => openDocument(event.event_id)));
+    if (event.status === "PROPOSED" && roles.upload.has(state.user.role)) {
+      actions.append(actionButton("Adjuntar evidencia", () => openDocument(event.event_id)));
     }
     if (event.status === "PROPOSED" && roles.review.has(state.user.role)) {
       actions.append(actionButton("Aprobar", () => approveEvent(event.event_id), "approve"));
       actions.append(actionButton("Rechazar", () => openReject(event.event_id), "reject"));
     }
-    if (!actions.children.length) actions.append(element("span", "muted", "Sin acciones"));
+    if (!actions.children.length) actions.append(element("span", "muted", "Completado"));
     actionsCell.append(actions);
-    row.append(eventCell, typeCell, ownerCell, decisionCell, ledgerCell, actionsCell);
+
+    row.append(eventCell, typeCell, ownerCell, docCell, decisionCell, ledgerCell, actionsCell);
     body.append(row);
   });
+}
+
+function roundKb(bytes) {
+  return (bytes / 1024).toFixed(1);
+}
+
+function renderTelemetry() {
+  // 1. Gauges
+  const latest = state.telemetryReadings[0];
+  $("#val-pressure").textContent = latest?.pressure_psi !== undefined && latest?.pressure_psi !== null ? latest.pressure_psi.toFixed(1) : "—";
+  $("#val-temperature").textContent = latest?.temperature_c !== undefined && latest?.temperature_c !== null ? latest.temperature_c.toFixed(1) : "—";
+  $("#val-vibration").textContent = latest?.vibration_mms !== undefined && latest?.vibration_mms !== null ? latest.vibration_mms.toFixed(2) : "—";
+  $("#val-flow").textContent = latest?.flow_rate_bpd !== undefined && latest?.flow_rate_bpd !== null ? latest.flow_rate_bpd.toFixed(1) : "—";
+
+  // 2. Batches Table
+  const body = $("#telemetry-batches-table");
+  const empty = $("#telemetry-empty");
+  body.replaceChildren();
+  empty.hidden = state.telemetryBatches.length > 0;
+
+  state.telemetryBatches.forEach((batch) => {
+    const row = document.createElement("tr");
+    row.append(
+      element("td", null, batch.batch_id),
+      element("td", null, `${formatDate(batch.period_start)} → ${formatDate(batch.period_end)}`),
+      element("td", null, `${batch.reading_count} lecturas`),
+      element("td", "tx-id", batch.merkle_root),
+      element("td", null, statusBadge(batch.ledger_status)),
+      element("td", "tx-id", batch.ledger_tx_id || "Pendiente Fabric"),
+    );
+    const actionsCell = document.createElement("td");
+    actionsCell.append(actionButton("Verificar Merkle", () => verifyTelemetryBatch(batch.batch_id)));
+    row.append(actionsCell);
+    body.append(row);
+  });
+}
+
+async function simulateTelemetry() {
+  if (!state.selectedAsset) return showToast("Seleccioná un activo primero.", true);
+  const btn = $("#simulate-telemetry-btn");
+  setBusy(btn, true, "Generando lecturas…");
+  try {
+    await request(`/api/v1/assets/${encodeURIComponent(state.selectedAsset.asset_id)}/telemetry/simulate?count=15`, { method: "POST" });
+    await refreshAll(true);
+    showToast(`15 lecturas de sensores generadas para ${state.selectedAsset.asset_id}.`);
+  } catch (err) {
+    showToast(err.message, true);
+  } finally {
+    setBusy(btn, false);
+  }
+}
+
+async function anchorTelemetryBatch() {
+  if (!state.selectedAsset) return showToast("Seleccioná un activo primero.", true);
+  const btn = $("#anchor-batch-btn");
+  setBusy(btn, true, "Calculando Merkle Root…");
+  try {
+    const batch = await request(`/api/v1/assets/${encodeURIComponent(state.selectedAsset.asset_id)}/telemetry/batch`, {
+      method: "POST",
+      body: { max_readings: 100 },
+    });
+    await refreshAll(true);
+    showToast(`Lote ${batch.batch_id} anclado en Fabric. Merkle Root: ${batch.merkle_root.slice(0, 12)}…`);
+  } catch (err) {
+    showToast(err.message, true);
+  } finally {
+    setBusy(btn, false);
+  }
+}
+
+async function verifyTelemetryBatch(batchId) {
+  try {
+    const result = await request("/api/v1/telemetry/verify-batch", {
+      method: "POST",
+      body: { batch_id: batchId },
+    });
+    if (result.verified) {
+      showToast(`✓ Lote ${batchId} auditado: el Merkle Root coincide con el registro inmutable.`);
+    } else {
+      showToast(`✕ Error de integridad en lote ${batchId}: Merkle root no coincide.`, true);
+    }
+  } catch (err) {
+    showToast(err.message, true);
+  }
+}
+
+async function openTimeline(assetId) {
+  const dialog = $("#timeline-dialog");
+  const title = $("#timeline-title");
+  const subtitle = $("#timeline-subtitle");
+  const body = $("#timeline-body");
+  title.textContent = `Trazabilidad y Línea de Tiempo: ${assetId}`;
+  subtitle.textContent = "Cargando historial certificado desde PostgreSQL y Hyperledger Fabric…";
+  body.replaceChildren(element("div", "table-empty", "Consultando eventos y transacciones…"));
+  openDialog("timeline-dialog");
+
+  try {
+    const response = await request(`/api/v1/assets/${encodeURIComponent(assetId)}/timeline`);
+    subtitle.textContent = `${response.asset_name} · ${response.timeline.length} hitos auditados`;
+    body.replaceChildren();
+
+    response.timeline.forEach((item) => {
+      const node = element("div", "timeline-node");
+      const icon = element("div", `timeline-icon ${item.item_type}`, iconForType(item.item_type));
+      const content = element("div", "timeline-content");
+
+      const head = element("div", "timeline-content-head");
+      head.append(element("strong", null, item.title), element("span", "timeline-time", formatDate(item.timestamp)));
+
+      const desc = element("p", "timeline-desc", item.description);
+
+      const meta = element("div", "timeline-meta-bar");
+      meta.append(element("span", null, `Por: ${item.author} (${item.organization})`));
+      if (item.ledger_tx_id) {
+        const tx = element("span", "timeline-tx", `Tx: ${item.ledger_tx_id}`);
+        tx.title = item.ledger_tx_id;
+        meta.append(tx);
+      }
+      if (item.block_number) meta.append(element("span", null, `Bloque: #${item.block_number}`));
+      if (item.document_hash) meta.append(element("span", "hash-tag", `SHA-256: ${item.document_hash.slice(0, 16)}…`));
+
+      content.append(head, desc, meta);
+      node.append(icon, content);
+      body.append(node);
+    });
+  } catch (err) {
+    body.replaceChildren(element("div", "table-empty", `Error al cargar timeline: ${err.message}`));
+  }
+}
+
+function iconForType(type) {
+  switch (type) {
+    case "CREATION": return "✦";
+    case "EVENT": return "🔧";
+    case "DOCUMENT": return "📄";
+    case "REVIEW": return "✍";
+    case "TELEMETRY_BATCH": return "📡";
+    case "DECOMMISSION": return "🛑";
+    default: return "•";
+  }
+}
+
+function openPreview(doc) {
+  $("#preview-filename").textContent = doc.original_filename;
+  const content = $("#preview-content");
+  content.replaceChildren();
+
+  const details = [
+    ["Categoría Técnica", translated("categories", doc.category)],
+    ["Tipo MIME", doc.content_type],
+    ["Tamaño", `${roundKb(doc.size_bytes)} KB`],
+    ["Subido por", doc.uploaded_by],
+    ["Fecha de registro", formatDate(doc.created_at)],
+    ["Estado en Ledger", translated("status", doc.ledger_status)],
+    ["Notas de campo", doc.notes || "Sin observaciones"],
+  ];
+
+  details.forEach(([k, v]) => {
+    const row = element("div", "preview-meta-row");
+    row.append(element("span", "muted", k), element("strong", null, v));
+    content.append(row);
+  });
+
+  const hashRow = element("div", null);
+  hashRow.append(
+    element("p", "muted", "Huella Digital SHA-256 certificada en Fabric:"),
+    element("p", "hash-tag", doc.sha256_hash),
+  );
+  content.append(hashRow);
+
+  openDialog("preview-dialog");
 }
 
 function actionButton(text, action, kind = "") {
@@ -449,6 +731,14 @@ function openReject(eventId) {
   openDialog("reject-dialog");
 }
 
+function openDecommission(assetId) {
+  if (!roles.decommission.has(state.user.role)) return showToast("Solo la operadora puede dar de baja activos.", true);
+  const form = $("#decommission-form");
+  form.reset();
+  $("#decommission-asset-label").textContent = `Activo: ${assetId}`;
+  openDialog("decommission-dialog");
+}
+
 async function createAsset(event) {
   event.preventDefault();
   const button = event.currentTarget.querySelector("button[type=submit]");
@@ -494,7 +784,7 @@ async function uploadDocument(event) {
     const documentRecord = await request(`/api/v1/events/${encodeURIComponent(state.activeEventId)}/documents`, { method: "POST", body: payload });
     closeDialog("document-dialog");
     await refreshAll(true);
-    showToast(`Evidencia guardada. SHA-256 ${documentRecord.sha256_hash.slice(0, 12)}…`);
+    showToast(`Evidencia guardada (${translated("categories", documentRecord.category)}). SHA-256 ${documentRecord.sha256_hash.slice(0, 12)}…`);
   } catch (problem) {
     showToast(problem.message, true);
   } finally {
@@ -529,6 +819,27 @@ async function rejectEvent(event) {
   }
 }
 
+async function decommissionAsset(event) {
+  event.preventDefault();
+  const button = event.currentTarget.querySelector("button[type=submit]");
+  setBusy(button, true);
+  try {
+    const reason = new FormData(event.currentTarget).get("reason");
+    const updated = await request(`/api/v1/assets/${encodeURIComponent(state.selectedAsset.asset_id)}/decommission`, {
+      method: "POST",
+      body: { reason },
+    });
+    closeDialog("decommission-dialog");
+    state.selectedAsset = updated;
+    await refreshAll(true);
+    showToast(`Activo ${updated.asset_id} desafectado formalmente en Fabric.`);
+  } catch (err) {
+    showToast(err.message, true);
+  } finally {
+    setBusy(button, false);
+  }
+}
+
 async function verifyDocument(event) {
   event.preventDefault();
   if (!roles.verify.has(state.user.role)) return showToast("Tu rol no puede verificar evidencia.", true);
@@ -540,8 +851,8 @@ async function verifyDocument(event) {
     const result = await request("/api/v1/documents/verify", { method: "POST", body: new FormData(event.currentTarget) });
     const box = element("div", `verification-message${result.verified ? "" : " failed"}`);
     box.append(
-      element("strong", null, result.verified ? "Evidencia verificada" : "No existe una huella coincidente"),
-      element("span", null, result.verified ? "Fabric confirmó que los bytes coinciden con el registro." : "El archivo fue modificado o nunca se registró."),
+      element("strong", null, result.verified ? "Evidencia verificada en Ledger" : "No existe una huella coincidente"),
+      element("span", null, result.verified ? "Hyperledger Fabric confirmó que los bytes coinciden exactamente con el registro inmutable." : "El archivo fue modificado o nunca se registró en el consorcio."),
       element("code", null, result.sha256_hash),
     );
     resultBox.append(box);
@@ -561,10 +872,13 @@ $("#refresh-button").addEventListener("click", () => refreshAll());
 $("#asset-search").addEventListener("input", renderAssets);
 $("#create-asset-button").addEventListener("click", openAsset);
 $("#propose-button").addEventListener("click", openMaintenance);
+$("#simulate-telemetry-btn").addEventListener("click", simulateTelemetry);
+$("#anchor-batch-btn").addEventListener("click", anchorTelemetryBatch);
 $("#asset-form").addEventListener("submit", createAsset);
 $("#maintenance-form").addEventListener("submit", createMaintenance);
 $("#document-form").addEventListener("submit", uploadDocument);
 $("#reject-form").addEventListener("submit", rejectEvent);
+$("#decommission-form").addEventListener("submit", decommissionAsset);
 $("#verify-form").addEventListener("submit", verifyDocument);
 $("#verify-file").addEventListener("change", (event) => { $("#verify-file-name").textContent = event.target.files[0]?.name || "PDF, JPEG o PNG"; });
 $("#document-file").addEventListener("change", (event) => { $("#document-file-name").textContent = event.target.files[0]?.name || "PDF, JPEG o PNG · máximo 10 MiB"; });

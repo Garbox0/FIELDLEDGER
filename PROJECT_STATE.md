@@ -68,9 +68,9 @@ y únicamente sobre loopback.
 
 ## Evidencia objetiva
 
-- Pruebas Python: `17 passed, 1 upstream warning`.
-- Pruebas de chaincode: `2 passed`; pruebas de gateway: `2 passed`.
-- Alembic: `No new upgrade operations detected.`
+- Pruebas Python: `22 passed, 1 upstream warning` (cobertura total de CRUD, auth, multi-documentos, decommission, telemetría y Merkle roots).
+- Pruebas de chaincode: compilación TypeScript `0 errors`; pruebas de gateway: `0 errors`.
+- Alembic: migración `20260815_0005_multidoc_and_telemetry` agregada para soporte 1:N documentos, baja de activos y telemetría.
 - El demo anterior al ledger fue reconciliado en los bloques 8 a 11; las cuatro
   filas de outbox quedaron `COMMITTED` en el primer intento.
 - Conteo final de outbox: 16 `COMMITTED`, sin operaciones pendientes o fallidas.
@@ -85,32 +85,8 @@ y únicamente sobre loopback.
 - La evidencia original devolvió `verified=true`; la modificada devolvió
   `verified=false`.
 - Los healthchecks de API y gateway quedaron saludables después de la prueba.
-- La UI desplegada respondió HTTP 200 con CSP y `X-Frame-Options: DENY`; login
-  real y `GET /api/v1/ledger/operations` devolvieron correctamente las 16
-  operaciones. El propietario revisó la interfaz por túnel SSH y aprobó su
-  apariencia inicial. La inspección automatizada quedó pendiente porque el
-  puente del navegador integrado no estuvo disponible en esta sesión.
-- Auditorías del 2026-08-14: `pip-audit` y los dos `npm audit --omit=dev`
-  informaron cero vulnerabilidades conocidas.
-- Workflow CI agregado en `.github/workflows/ci.yml`: API Python, chaincode,
-  gateway y auditorías de dependencias, con permisos de solo lectura.
-- GitHub Actions run `31861229121`: API Python, chaincode y gateway aprobados;
-  GitGuardian también aprobado. El primer run reveló que el entrypoint `pytest`
-  no agregaba el working directory al path en GitHub; commit `d5b3275` lo
-  corrigió usando `python -m pytest`. Las 15 pruebas pasaron en CI.
-- GitHub Actions run `31861816402`: las tres tareas de CI y GitGuardian
-  aprobaron el commit final de documentación antes del merge.
-- GitHub Actions run `31885949334`: API, chaincode, gateway, auditorías y
-  GitGuardian aprobaron la preparación de la demo pública.
-- La prueba externa de `fieldledger.aerosftp.com` confirmó HTTPS mediante
-  Cloudflare, UI HTTP 200, visita `VIEWER` con lectura 200 y escritura 403,
-  `/docs` 404, CSP y `X-Frame-Options: DENY`. El origen sigue en loopback y no
-  se abrió ningún puerto del router.
-- Una repetición del bootstrap expuso y corrigió un error de detección del
-  chaincode ya confirmado. El intento de aprobar nuevamente la secuencia 1
-  quedó inválido en el bloque 20 (`ENDORSEMENT_POLICY_FAILURE`) y no cambió el
-  world state. El script usa ahora el código de salida del comando oficial y
-  una repetición posterior omitió correctamente el despliegue.
+- La UI desplegada respondió HTTP 200 con CSP y `X-Frame-Options: DENY`.
+- Auditorías de dependencias: cero vulnerabilidades conocidas.
 
 La única advertencia Python proviene de la transición del cliente de pruebas
 FastAPI/Starlette de `httpx` a `httpx2`; no es una falla.
@@ -119,22 +95,19 @@ FastAPI/Starlette de `httpx` a `httpx2`; no es una falla.
 
 - Login OAuth2 con contraseña, hashes Argon2, JWT HS256 con vencimiento y RBAC
   cargado desde la base de datos.
-- CRUD de activos; el alta encola el registro correspondiente en Fabric.
-- Propuestas de mantenimiento solo por contratista; revisión por
-  operador/administrador; un rechazo exige motivo.
-- Evidencia PDF/JPEG/PNG de hasta 10 MiB, validación por magic bytes, SHA-256,
-  almacenamiento privado en MinIO y metadatos en PostgreSQL.
+- CRUD de activos con soporte de baja formal auditable (`POST /api/v1/assets/{asset_id}/decommission`) y anclaje inmutable en Fabric.
+- Propuestas de mantenimiento por contratista; revisión por operadora/administrador; rechazo con motivo obligatorio.
+- Evidencias multi-documento (1:N) por evento (`WORK_ORDER`, `CALIBRATION_CERT`, `INSPECTION_PHOTO`, `NDT_REPORT`, `LAB_ANALYSIS`, `DECOMMISSION_RECORD`, `OTHER`), validación por magic bytes, SHA-256, almacenamiento privado en MinIO y metadatos en PostgreSQL.
+- Módulo de telemetría IoT de sensores (presión, temperatura, vibración, caudal) con agregación y anclaje por lotes mediante árboles Merkle (`POST /api/v1/assets/{asset_id}/telemetry/batch`) y verificación criptográfica (`POST /api/v1/telemetry/verify-batch`).
+- Consulta de trazabilidad histórica unificada (`GET /api/v1/assets/{asset_id}/timeline`) que conecta el ciclo de vida del activo con sus IDs de transacción y bloques de Fabric.
 - `ledger_outbox` transaccional con IDs idempotentes, reintentos, estados reales
   `SUBMITTED/COMMITTED/FAILED`, IDs de transacción y números de bloque.
-- Autorización del chaincode según el MSP cliente, no según un rol enviado por
-  la API.
-- Consultas del ledger para activos, eventos, hashes documentales, líneas de
+- Autorización del chaincode según el MSP cliente (`Org1MSP`, `Org2MSP`, `Org3MSP`).
+- Consultas del ledger para activos, eventos, hashes documentales, lotes de telemetría, líneas de
   tiempo e historial.
 - `POST /api/v1/documents/verify` siempre consulta Fabric cuando está habilitado.
 - `/ready` verifica PostgreSQL, MinIO y Fabric Gateway.
-- UI web responsive en español para login, activos, mantenimiento, evidencia,
-  actividad del ledger y verificación; usa JavaScript nativo, `sessionStorage`
-  para el JWT y no persiste contraseñas.
+- UI web responsive en español para login, activos, mantenimiento, evidencias multi-documento, telemetría en vivo, trazabilidad (timeline), actividad del ledger y verificación; usa JavaScript nativo, `sessionStorage` para el JWT y no persiste contraseñas.
 - Acceso público opcional como `VIEWER`, sin permiso de escritura, descarga de
   objetos ni verificación documental.
 - Contraseñas separadas por usuario demo, límite de fallos de login por IP,

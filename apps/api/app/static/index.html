@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="FieldLedger: integridad de activos y mantenimiento verificable.">
-  <title>FieldLedger · Integridad operacional</title>
+  <meta name="description" content="FieldLedger: integridad de activos, mantenimiento y telemetría verificable en Oil & Gas.">
+  <title>FieldLedger · Integridad Operacional &amp; Blockchain en Oil &amp; Gas</title>
   <link rel="stylesheet" href="/app/styles.css">
   <script src="/app/app.js" defer></script>
 </head>
@@ -18,20 +18,21 @@
         <span>FIELDLEDGER</span>
       </a>
       <div class="story-copy">
-        <p class="eyebrow eyebrow-light">INTEGRIDAD DE ACTIVOS · OIL &amp; GAS</p>
+        <p class="eyebrow eyebrow-light">INTEGRIDAD DE ACTIVOS &amp; TRAZABILIDAD · OIL &amp; GAS</p>
         <h1 id="login-title">Evidencia operacional que ninguna parte puede reescribir sola.</h1>
-        <p>Operadora, contratista y auditor trabajan sobre un mismo flujo, con documentos privados y hechos críticos confirmados en Hyperledger Fabric.</p>
+        <p>Operadora, contratista y auditor comparten un flujo regulado con evidencias privadas, telemetría IoT anclada y hechos críticos certificados en Hyperledger Fabric 2.5 LTS.</p>
       </div>
       <div class="trust-strip" aria-label="Características del sistema">
         <span>3 organizaciones</span>
+        <span>Merkle Trees</span>
         <span>SHA-256</span>
-        <span>Ledger real</span>
+        <span>Endorsement dual</span>
       </div>
     </section>
 
     <section class="login-panel" aria-labelledby="access-title">
       <form id="login-form" class="login-card">
-        <p class="eyebrow">ACCESO AL LABORATORIO</p>
+        <p class="eyebrow">ACCESO AL SISTEMA</p>
         <h2 id="access-title">Ingresar a FieldLedger</h2>
         <p class="muted">Usá una identidad habilitada. La contraseña no se guarda en el navegador.</p>
 
@@ -45,13 +46,13 @@
           <span>Ingresar</span><span aria-hidden="true">→</span>
         </button>
         <button id="demo-login-button" class="button button-secondary button-wide" type="button" hidden>
-          Explorar en modo lectura
+          Explorar en modo lectura (Viewer)
         </button>
         <p id="login-error" class="form-error" role="alert"></p>
 
         <div class="role-note">
           <strong>Flujo por roles</strong>
-          <span>Operadora crea y aprueba · Contratista propone · Auditor verifica</span>
+          <span>Operadora (crea/aprueba/desafecta) · Contratista (propone/evidencias) · Auditor (inspecciona/verifica)</span>
         </div>
       </form>
     </section>
@@ -67,8 +68,9 @@
         <a class="nav-link active" href="#overview"><span aria-hidden="true">01</span>Resumen</a>
         <a class="nav-link" href="#assets"><span aria-hidden="true">02</span>Activos</a>
         <a class="nav-link" href="#maintenance"><span aria-hidden="true">03</span>Mantenimiento</a>
-        <a class="nav-link" href="#ledger"><span aria-hidden="true">04</span>Ledger</a>
-        <a class="nav-link" href="#verify"><span aria-hidden="true">05</span>Verificar</a>
+        <a class="nav-link" href="#telemetry"><span aria-hidden="true">04</span>Telemetría IoT</a>
+        <a class="nav-link" href="#ledger"><span aria-hidden="true">05</span>Ledger Fabric</a>
+        <a class="nav-link" href="#verify"><span aria-hidden="true">06</span>Verificar Evidencia</a>
       </nav>
       <div class="sidebar-foot">
         <span class="pulse-dot" aria-hidden="true"></span>
@@ -79,7 +81,7 @@
     <main class="workspace">
       <header class="topbar">
         <div>
-          <p class="eyebrow">CONSOLA DE INTEGRIDAD</p>
+          <p class="eyebrow">CONSOLA DE INTEGRIDAD OPERACIONAL</p>
           <p id="current-context" class="context-title">Resumen operacional</p>
         </div>
         <div class="user-menu">
@@ -93,32 +95,34 @@
       <div class="content">
         <section id="overview" class="hero-section">
           <div>
-            <p class="eyebrow">TRAZABILIDAD ENTRE ORGANIZACIONES</p>
-            <h1>Integridad operacional,<br><span>verificable.</span></h1>
-            <p class="hero-description">Los datos de trabajo permanecen ágiles. La evidencia crítica obtiene una huella compartida, un transaction ID y un bloque real.</p>
+            <p class="eyebrow">TRAZABILIDAD INTEGRAL ENTRE ORGANIZACIONES</p>
+            <h1>Integridad de activos,<br><span>certificada en Ledger.</span></h1>
+            <p class="hero-description">PostgreSQL mantiene los datos ágiles y MinIO custodia los archivos privados. Cada hito de mantenimiento, lote de telemetría y evidencia técnica obtiene una huella criptográfica SHA-256 con bloque y transacción real en Fabric.</p>
           </div>
           <div class="hero-actions">
             <button id="hero-primary" class="button button-primary" type="button">Registrar activo</button>
-            <a class="button button-secondary" href="#ledger">Ver actividad del ledger</a>
+            <a class="button button-secondary" href="#telemetry">Telemetría de Sensores</a>
+            <a class="button button-secondary" href="#ledger">Ver bloques del ledger</a>
           </div>
         </section>
 
         <section class="stats-grid" aria-label="Indicadores">
           <article class="stat-card"><span>Activos registrados</span><strong id="asset-count">—</strong><small>fuente operacional</small></article>
-          <article class="stat-card"><span>Eventos visibles</span><strong id="event-count">—</strong><small>activo seleccionado</small></article>
-          <article class="stat-card"><span>Commits Fabric</span><strong id="commit-count">—</strong><small>últimas 50 operaciones</small></article>
-          <article class="stat-card stat-health"><span>Estado integral</span><strong id="health-status">Consultando</strong><small>API · datos · ledger</small></article>
+          <article class="stat-card"><span>Eventos registrados</span><strong id="event-count">—</strong><small>mantenimiento &amp; campo</small></article>
+          <article class="stat-card"><span>Commits en Fabric</span><strong id="commit-count">—</strong><small>transacciones confirmadas</small></article>
+          <article class="stat-card stat-health"><span>Estado del Sistema</span><strong id="health-status">Consultando</strong><small>API · Postgres · MinIO · Gateway</small></article>
         </section>
 
+        <!-- SECCIÓN 02: ACTIVOS -->
         <section id="assets" class="section-block">
           <div class="section-heading">
-            <div><p class="eyebrow">REGISTRO OPERACIONAL</p><h2>Activos</h2></div>
+            <div><p class="eyebrow">REGISTRO DE EQUIPOS &amp; INSTALACIONES</p><h2>Activos</h2></div>
             <button id="create-asset-button" class="button button-primary" type="button">+ Nuevo activo</button>
           </div>
           <div class="asset-grid">
             <div class="panel asset-list-panel">
               <div class="panel-toolbar">
-                <label class="search-box" for="asset-search"><span aria-hidden="true">⌕</span><input id="asset-search" type="search" placeholder="Buscar activo o sitio"></label>
+                <label class="search-box" for="asset-search"><span aria-hidden="true">⌕</span><input id="asset-search" type="search" placeholder="Buscar por ID, nombre, yacimiento o tipo"></label>
                 <span id="asset-list-count" class="count-label">0 activos</span>
               </div>
               <div id="asset-list" class="asset-list" aria-live="polite"></div>
@@ -127,30 +131,105 @@
             <article id="asset-detail" class="panel asset-detail empty-state">
               <div class="empty-mark" aria-hidden="true">FL</div>
               <h3>Seleccioná un activo</h3>
-              <p>Vas a ver sus datos, mantenimiento y estado de confirmación.</p>
+              <p>Vas a ver sus especificaciones técnicas, trazabilidad completa y estado de confirmación en Fabric.</p>
             </article>
           </div>
         </section>
 
+        <!-- SECCIÓN 03: MANTENIMIENTO -->
         <section id="maintenance" class="section-block">
           <div class="section-heading">
-            <div><p class="eyebrow">WORKFLOW CONTROLADO</p><h2>Mantenimiento</h2></div>
+            <div><p class="eyebrow">WORKFLOW &amp; EVIDENCIAS DE CAMPO</p><h2>Mantenimiento</h2></div>
             <button id="propose-button" class="button button-secondary" type="button">Proponer mantenimiento</button>
           </div>
           <div class="panel table-panel">
             <div class="table-scroll">
               <table>
-                <thead><tr><th>Evento</th><th>Tipo</th><th>Responsable</th><th>Decisión</th><th>Ledger</th><th>Acciones</th></tr></thead>
+                <thead>
+                  <tr>
+                    <th>Evento &amp; Fecha</th>
+                    <th>Tipo de Trabajo</th>
+                    <th>Responsable</th>
+                    <th>Evidencias (1:N)</th>
+                    <th>Decisión</th>
+                    <th>Ledger</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
                 <tbody id="event-table"></tbody>
               </table>
             </div>
-            <div id="event-empty" class="table-empty">Seleccioná un activo para consultar su mantenimiento.</div>
+            <div id="event-empty" class="table-empty">Seleccioná un activo para consultar su historial de mantenimiento.</div>
           </div>
         </section>
 
+        <!-- SECCIÓN 04: TELEMETRÍA IOT -->
+        <section id="telemetry" class="section-block">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">INGESTA DE SENSORES &amp; ANCLAJE POR LOTES (ADR-002)</p>
+              <h2>Telemetría IoT</h2>
+            </div>
+            <div class="hero-actions">
+              <button id="simulate-telemetry-btn" class="button button-secondary" type="button">⚡ Simular lecturas de sensores</button>
+              <button id="anchor-batch-btn" class="button button-primary" type="button">🔒 Anclar Lote en Fabric (Merkle Tree)</button>
+            </div>
+          </div>
+
+          <!-- Gauges en vivo -->
+          <div class="telemetry-gauges-grid" aria-label="Lecturas de Sensores en Tiempo Real">
+            <article class="gauge-card">
+              <span class="gauge-title">Presión en Boca de Pozo</span>
+              <div class="gauge-value-row"><strong id="val-pressure">—</strong><small>PSI</small></div>
+              <span class="gauge-desc">API Spec 6A / Rango nominal 1000-1500</span>
+            </article>
+            <article class="gauge-card">
+              <span class="gauge-title">Temperatura de Fluido</span>
+              <div class="gauge-value-row"><strong id="val-temperature">—</strong><small>°C</small></div>
+              <span class="gauge-desc">Monitoreo térmico de cabezal y bomba</span>
+            </article>
+            <article class="gauge-card">
+              <span class="gauge-title">Vibración RMS de Bomba</span>
+              <div class="gauge-value-row"><strong id="val-vibration">—</strong><small>mm/s</small></div>
+              <span class="gauge-desc">ISO 10816-3 / Severidad mecánica</span>
+            </article>
+            <article class="gauge-card">
+              <span class="gauge-title">Caudal Estimado</span>
+              <div class="gauge-value-row"><strong id="val-flow">—</strong><small>BPD</small></div>
+              <span class="gauge-desc">Barriles por día (producción bruta)</span>
+            </article>
+          </div>
+
+          <!-- Tabla de lotes anclados -->
+          <div class="panel table-panel" style="margin-top: 1.5rem;">
+            <div class="panel-header-sub">
+              <strong>Lotes de Telemetría Anclados en Ledger</strong>
+              <small class="muted">Los datos crudos residen en base de datos; únicamente el Merkle Root SHA-256 se ancla en Fabric</small>
+            </div>
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Batch ID</th>
+                    <th>Período Temporal</th>
+                    <th>Lecturas</th>
+                    <th>Merkle Root (SHA-256)</th>
+                    <th>Estado</th>
+                    <th>Transaction ID</th>
+                    <th>Auditoría</th>
+                  </tr>
+                </thead>
+                <tbody id="telemetry-batches-table"></tbody>
+              </table>
+            </div>
+            <div id="telemetry-empty" class="table-empty">No hay lotes de telemetría registrados para este activo. Hacé clic en "Simular lecturas" y luego "Anclar Lote".</div>
+          </div>
+        </section>
+
+        <!-- SECCIÓN 05: ACTIVIDAD DEL LEDGER -->
         <section id="ledger" class="section-block">
           <div class="section-heading">
-            <div><p class="eyebrow">EVIDENCIA COMPARTIDA</p><h2>Actividad del ledger</h2></div>
+            <div><p class="eyebrow">TRANSACCIONES CERTIFICADAS</p><h2>Actividad del ledger</h2></div>
             <div class="legend"><span><i class="status-dot committed"></i> Confirmado</span><span><i class="status-dot pending"></i> En proceso</span></div>
           </div>
           <div class="panel table-panel">
@@ -164,17 +243,22 @@
           </div>
         </section>
 
+        <!-- SECCIÓN 06: VERIFICACIÓN -->
         <section id="verify" class="section-block verification-grid">
           <div class="verification-copy">
-            <p class="eyebrow">PRUEBA DE INTEGRIDAD</p>
+            <p class="eyebrow">AUDITORÍA CRIPTOGRÁFICA</p>
             <h2>Verificar evidencia</h2>
-            <p>Subí una copia PDF, JPEG o PNG. FieldLedger recalcula su SHA-256 y consulta Fabric: el archivo nunca se incorpora al ledger.</p>
-            <ul class="check-list"><li>Máximo 10 MiB</li><li>Consulta real a AuditorOrg</li><li>Sin fallback local</li></ul>
+            <p>Subí cualquier copia de un archivo PDF, JPEG o PNG. FieldLedger computa su huella SHA-256 y consulta el contrato de Hyperledger Fabric: si el archivo fue alterado un solo byte, la verificación fallará.</p>
+            <ul class="check-list">
+              <li>Límite de archivo: 10 MiB</li>
+              <li>Consulta descentralizada con MSP de AuditorOrg</li>
+              <li>Sin fallback en base de datos</li>
+            </ul>
           </div>
           <form id="verify-form" class="panel upload-panel">
             <label class="drop-zone" for="verify-file">
               <span class="upload-icon" aria-hidden="true">↑</span>
-              <strong>Seleccionar evidencia</strong>
+              <strong>Seleccionar evidencia a verificar</strong>
               <span id="verify-file-name">PDF, JPEG o PNG</span>
               <input id="verify-file" name="file" type="file" accept="application/pdf,image/jpeg,image/png" required>
             </label>
@@ -186,58 +270,108 @@
     </main>
   </div>
 
+  <!-- MODAL: ALTA DE ACTIVO -->
   <dialog id="asset-dialog">
     <form id="asset-form" class="dialog-card">
       <div class="dialog-heading"><div><p class="eyebrow">NUEVO REGISTRO</p><h2>Registrar activo</h2></div><button class="dialog-close" type="button" data-close="asset-dialog" aria-label="Cerrar">×</button></div>
       <div class="form-grid">
         <label>ID del activo<input name="asset_id" required minlength="3" maxlength="64" pattern="[A-Z0-9][A-Z0-9_-]+" placeholder="VALVE-VM-0042"></label>
-        <label>Tipo<input name="asset_type" required minlength="2" maxlength="64" pattern="[A-Z0-9_-]+" placeholder="VALVE"></label>
+        <label>Tipo de Equipo<input name="asset_type" required minlength="2" maxlength="64" pattern="[A-Z0-9_-]+" placeholder="VALVE, ESP_PUMP, COMPRESSOR, WELLHEAD"></label>
         <label class="span-2">Nombre<input name="name" required minlength="2" maxlength="160" placeholder="Válvula de seguridad de boca de pozo"></label>
-        <label>Sitio<input name="site" required minlength="2" maxlength="160" placeholder="Yacimiento demostración"></label>
-        <label>Ubicación<input name="location" maxlength="160" placeholder="WELL-137"></label>
-        <label>Fabricante<input name="manufacturer" maxlength="160" placeholder="Fabricante"></label>
+        <label>Yacimiento / Sitio<input name="site" required minlength="2" maxlength="160" placeholder="Vaca Muerta - Bloque Norte"></label>
+        <label>Ubicación / Pozo<input name="location" maxlength="160" placeholder="PAD-12 / WELL-137"></label>
+        <label>Fabricante<input name="manufacturer" maxlength="160" placeholder="Cameron / Schlumberger"></label>
         <label>Número de serie<input name="serial_number" maxlength="128" placeholder="SN-883721"></label>
         <label>Operadora<input name="operator" maxlength="160" placeholder="OperatorOrg"></label>
         <label>Fecha de instalación<input name="installation_date" type="date"></label>
-        <label>Estado<select name="status"><option>ACTIVE</option><option>MAINTENANCE</option><option>OUT_OF_SERVICE</option><option>DECOMMISSIONED</option></select></label>
-        <label>Criticidad<select name="criticality"><option>LOW</option><option selected>MEDIUM</option><option>HIGH</option><option>CRITICAL</option></select></label>
+        <label>Estado inicial<select name="status"><option value="ACTIVE">ACTIVE (Activo)</option><option value="MAINTENANCE">MAINTENANCE (En mantenimiento)</option><option value="OUT_OF_SERVICE">OUT_OF_SERVICE (Fuera de servicio)</option></select></label>
+        <label>Criticidad (API/ISO)<select name="criticality"><option value="LOW">LOW</option><option value="MEDIUM" selected>MEDIUM</option><option value="HIGH">HIGH</option><option value="CRITICAL">CRITICAL</option></select></label>
       </div>
-      <p class="form-hint">El alta guarda el activo y encola su identidad compacta para Fabric en una misma transacción.</p>
+      <p class="form-hint">El alta guarda el activo en PostgreSQL y encola su identidad en Fabric en una misma transacción ACID.</p>
       <div class="dialog-actions"><button class="button button-ghost" type="button" data-close="asset-dialog">Cancelar</button><button class="button button-primary" type="submit">Registrar activo</button></div>
     </form>
   </dialog>
 
+  <!-- MODAL: PROPUESTA DE MANTENIMIENTO -->
   <dialog id="maintenance-dialog">
     <form id="maintenance-form" class="dialog-card">
       <div class="dialog-heading"><div><p class="eyebrow">PROPUESTA DE CONTRATISTA</p><h2>Nuevo mantenimiento</h2></div><button class="dialog-close" type="button" data-close="maintenance-dialog" aria-label="Cerrar">×</button></div>
       <p id="maintenance-asset-label" class="dialog-context">—</p>
       <div class="form-grid">
         <label>ID del evento<input name="event_id" required minlength="3" maxlength="64" pattern="[A-Z0-9][A-Z0-9_-]+"></label>
-        <label>Tipo<select name="event_type"><option value="PREVENTIVE_MAINTENANCE">Mantenimiento preventivo</option><option value="CORRECTIVE_MAINTENANCE">Mantenimiento correctivo</option><option value="PART_REPLACEMENT">Reemplazo de componente</option></select></label>
-        <label class="span-2">Descripción<textarea name="description" required minlength="3" maxlength="4000" rows="4" placeholder="Trabajo realizado, alcance y criterio de aceptación"></textarea></label>
+        <label>Tipo de Trabajo<select name="event_type"><option value="PREVENTIVE_MAINTENANCE">Mantenimiento preventivo</option><option value="CORRECTIVE_MAINTENANCE">Mantenimiento correctivo</option><option value="PART_REPLACEMENT">Reemplazo de componente</option><option value="INSPECTION">Inspección de integridad</option><option value="PRESSURE_TEST">Prueba de presión hidrostática</option><option value="CALIBRATION">Calibración de instrumentos</option><option value="CERTIFICATION">Certificación de aptitud</option></select></label>
+        <label class="span-2">Descripción del Trabajo &amp; Normativa<textarea name="description" required minlength="3" maxlength="4000" rows="4" placeholder="Detalle del trabajo técnico realizado, normativa aplicada (API/ASME/ISO) y observaciones"></textarea></label>
         <input name="idempotency_key" type="hidden">
       </div>
       <div class="dialog-actions"><button class="button button-ghost" type="button" data-close="maintenance-dialog">Cancelar</button><button class="button button-primary" type="submit">Enviar propuesta</button></div>
     </form>
   </dialog>
 
+  <!-- MODAL: ADJUNTAR EVIDENCIA (MULTI-DOCUMENTO) -->
   <dialog id="document-dialog">
     <form id="document-form" class="dialog-card">
-      <div class="dialog-heading"><div><p class="eyebrow">EVIDENCIA PRIVADA</p><h2>Adjuntar documento</h2></div><button class="dialog-close" type="button" data-close="document-dialog" aria-label="Cerrar">×</button></div>
+      <div class="dialog-heading"><div><p class="eyebrow">EVIDENCIA PRIVADA DE CAMPO</p><h2>Adjuntar documento</h2></div><button class="dialog-close" type="button" data-close="document-dialog" aria-label="Cerrar">×</button></div>
       <p id="document-event-label" class="dialog-context">—</p>
-      <label class="drop-zone" for="document-file"><span class="upload-icon" aria-hidden="true">↑</span><strong>Seleccionar archivo</strong><span id="document-file-name">PDF, JPEG o PNG · máximo 10 MiB</span><input id="document-file" name="file" type="file" accept="application/pdf,image/jpeg,image/png" required></label>
-      <p class="form-hint">El archivo queda en MinIO. Solo su SHA-256 y metadatos compactos se registran en Fabric.</p>
-      <div class="dialog-actions"><button class="button button-ghost" type="button" data-close="document-dialog">Cancelar</button><button class="button button-primary" type="submit">Guardar evidencia</button></div>
+      <div class="form-grid">
+        <label class="span-2">Categoría Técnica de Evidencia
+          <select name="category" required>
+            <option value="WORK_ORDER">Orden de Trabajo / Permiso de Trabajo (PTW)</option>
+            <option value="CALIBRATION_CERT">Certificado de Calibración (Manómetros/Válvulas)</option>
+            <option value="INSPECTION_PHOTO">Fotografía de Inspección (Antes / Después)</option>
+            <option value="NDT_REPORT">Informe de Ensayos No Destructivos (NDT / Ultrasonido)</option>
+            <option value="LAB_ANALYSIS">Análisis de Laboratorio de Fluidos / Lubricantes</option>
+            <option value="DECOMMISSION_RECORD">Acta de Desafectación / Abandono</option>
+            <option value="OTHER" selected>Otra evidencia técnica</option>
+          </select>
+        </label>
+        <label class="span-2">Notas / Observaciones del Documento
+          <input name="notes" maxlength="500" placeholder="Ej: Prueba hidrostática 3000 PSI x 15 min según API 6A">
+        </label>
+      </div>
+      <label class="drop-zone" for="document-file" style="margin-top: 1rem;"><span class="upload-icon" aria-hidden="true">↑</span><strong>Seleccionar archivo</strong><span id="document-file-name">PDF, JPEG o PNG · máximo 10 MiB</span><input id="document-file" name="file" type="file" accept="application/pdf,image/jpeg,image/png" required></label>
+      <p class="form-hint">El archivo físico queda en el almacenamiento privado de MinIO. Su huella SHA-256 y categoría se registran inalterablemente en Fabric.</p>
+      <div class="dialog-actions"><button class="button button-ghost" type="button" data-close="document-dialog">Cancelar</button><button class="button button-primary" type="submit">Guardar y anclar evidencia</button></div>
     </form>
   </dialog>
 
+  <!-- MODAL: RECHAZO DE MANTENIMIENTO -->
   <dialog id="reject-dialog">
     <form id="reject-form" class="dialog-card dialog-small">
       <div class="dialog-heading"><div><p class="eyebrow">REVISIÓN DE OPERADORA</p><h2>Rechazar propuesta</h2></div><button class="dialog-close" type="button" data-close="reject-dialog" aria-label="Cerrar">×</button></div>
       <p id="reject-event-label" class="dialog-context">—</p>
-      <label>Motivo<textarea name="reason" required minlength="3" maxlength="2000" rows="4" placeholder="Indicar el motivo del rechazo"></textarea></label>
+      <label>Motivo Técnico del Rechazo<textarea name="reason" required minlength="3" maxlength="2000" rows="4" placeholder="Indicar el motivo por el cual no se aprueba la intervención"></textarea></label>
       <div class="dialog-actions"><button class="button button-ghost" type="button" data-close="reject-dialog">Cancelar</button><button class="button button-danger" type="submit">Confirmar rechazo</button></div>
     </form>
+  </dialog>
+
+  <!-- MODAL: DESAFECTACIÓN / DECOMMISSIONING DE ACTIVO -->
+  <dialog id="decommission-dialog">
+    <form id="decommission-form" class="dialog-card dialog-small">
+      <div class="dialog-heading"><div><p class="eyebrow">OPERADORA · BAJA AUDITABLE</p><h2>Desafectar Activo (Decommission)</h2></div><button class="dialog-close" type="button" data-close="decommission-dialog" aria-label="Cerrar">×</button></div>
+      <p id="decommission-asset-label" class="dialog-context">—</p>
+      <p class="muted">En Oil &amp; Gas los activos no se eliminan físicamente. La desafectación registra el abandono/baja formal con aval inmutable en Hyperledger Fabric.</p>
+      <label>Motivo / Dictamen de Baja<textarea name="reason" required minlength="5" maxlength="2000" rows="4" placeholder="Ej: Agotamiento de reservorio, fin de vida útil de fatiga y taponamiento según Res. 5/96 de Secretaría de Energía"></textarea></label>
+      <div class="dialog-actions"><button class="button button-ghost" type="button" data-close="decommission-dialog">Cancelar</button><button class="button button-danger" type="submit">Confirmar baja en Ledger</button></div>
+    </form>
+  </dialog>
+
+  <!-- MODAL: TRAZABILIDAD & TIMELINE DEL ACTIVO -->
+  <dialog id="timeline-dialog">
+    <div class="dialog-card" style="max-width: 52rem;">
+      <div class="dialog-heading"><div><p class="eyebrow">TRAZABILIDAD EN BLOCKCHAIN</p><h2 id="timeline-title">Línea de Tiempo del Activo</h2></div><button class="dialog-close" type="button" data-close="timeline-dialog" aria-label="Cerrar">×</button></div>
+      <p id="timeline-subtitle" class="dialog-context">—</p>
+      <div id="timeline-body" class="timeline-container" aria-live="polite"></div>
+      <div class="dialog-actions"><button class="button button-ghost" type="button" data-close="timeline-dialog">Cerrar</button></div>
+    </div>
+  </dialog>
+
+  <!-- MODAL: VISOR DE EVIDENCIA -->
+  <dialog id="preview-dialog">
+    <div class="dialog-card dialog-small">
+      <div class="dialog-heading"><div><p class="eyebrow">DETALLE DE EVIDENCIA</p><h2 id="preview-filename">Archivo</h2></div><button class="dialog-close" type="button" data-close="preview-dialog" aria-label="Cerrar">×</button></div>
+      <div id="preview-content" class="preview-body" style="margin-top: 1rem;"></div>
+      <div class="dialog-actions"><button class="button button-ghost" type="button" data-close="preview-dialog">Cerrar</button></div>
+    </div>
   </dialog>
 </body>
 </html>

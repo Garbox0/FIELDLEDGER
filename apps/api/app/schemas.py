@@ -7,6 +7,7 @@ from app.models import (
     AssetCriticality,
     AssetEventType,
     AssetStatus,
+    DocumentCategory,
     EventStatus,
     LedgerStatus,
 )
@@ -58,10 +59,18 @@ class AssetUpdate(BaseModel):
         return self
 
 
+class AssetDecommissionRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    reason: str = Field(min_length=5, max_length=2000)
+
+
 class AssetRead(AssetFields):
     model_config = ConfigDict(from_attributes=True)
 
     asset_id: str
+    decommissioned_at: datetime | None = None
+    decommission_reason: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -97,9 +106,13 @@ class MaintenanceCreate(BaseModel):
             AssetEventType.PREVENTIVE_MAINTENANCE,
             AssetEventType.CORRECTIVE_MAINTENANCE,
             AssetEventType.PART_REPLACEMENT,
+            AssetEventType.INSPECTION,
+            AssetEventType.PRESSURE_TEST,
+            AssetEventType.CALIBRATION,
+            AssetEventType.CERTIFICATION,
         }
         if self.event_type not in allowed:
-            raise ValueError("event_type is not a maintenance operation")
+            raise ValueError("event_type is not a valid maintenance operation")
         return self
 
 
@@ -107,6 +120,24 @@ class EventReview(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
     reason: str | None = Field(default=None, min_length=3, max_length=2000)
+
+
+class DocumentRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    document_id: str
+    event_id: str
+    asset_id: str
+    category: DocumentCategory
+    original_filename: str
+    content_type: str
+    size_bytes: int
+    sha256_hash: str
+    uploaded_by: str
+    notes: str | None = None
+    ledger_tx_id: str | None
+    ledger_status: LedgerStatus
+    created_at: datetime
 
 
 class AssetEventRead(BaseModel):
@@ -130,22 +161,7 @@ class AssetEventRead(BaseModel):
     reviewed_at: datetime | None
     rejection_reason: str | None
     created_at: datetime
-
-
-class DocumentRead(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    document_id: str
-    event_id: str
-    asset_id: str
-    original_filename: str
-    content_type: str
-    size_bytes: int
-    sha256_hash: str
-    uploaded_by: str
-    ledger_tx_id: str | None
-    ledger_status: LedgerStatus
-    created_at: datetime
+    documents: list[DocumentRead] = []
 
 
 class DocumentVerification(BaseModel):
@@ -153,6 +169,87 @@ class DocumentVerification(BaseModel):
     sha256_hash: str
     reason: str | None = None
     document: dict[str, object] | None = None
+
+
+class AssetTimelineItem(BaseModel):
+    item_id: str
+    item_type: str  # "CREATION", "EVENT", "REVIEW", "DOCUMENT", "DECOMMISSION", "TELEMETRY_BATCH"
+    title: str
+    description: str
+    organization: str
+    author: str
+    timestamp: datetime
+    status: str
+    ledger_tx_id: str | None = None
+    block_number: str | None = None
+    document_hash: str | None = None
+    details: dict[str, object] = {}
+
+
+class AssetTimelineResponse(BaseModel):
+    asset_id: str
+    asset_name: str
+    timeline: list[AssetTimelineItem]
+
+
+class TelemetryReadingCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    timestamp: datetime | None = None
+    pressure_psi: float | None = Field(default=None, ge=0, le=20000)
+    temperature_c: float | None = Field(default=None, ge=-50, le=500)
+    vibration_mms: float | None = Field(default=None, ge=0, le=100)
+    flow_rate_bpd: float | None = Field(default=None, ge=0, le=50000)
+
+
+class TelemetryReadingRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    asset_id: str
+    timestamp: datetime
+    pressure_psi: float | None
+    temperature_c: float | None
+    vibration_mms: float | None
+    flow_rate_bpd: float | None
+    batch_id: str | None
+
+
+class TelemetryBatchRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    batch_id: str
+    asset_id: str
+    period_start: datetime
+    period_end: datetime
+    reading_count: int
+    merkle_root: str
+    ledger_tx_id: str | None
+    ledger_status: LedgerStatus
+    created_at: datetime
+
+
+class TelemetryBatchTrigger(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    max_readings: int = Field(default=100, ge=1, le=1000)
+
+
+class TelemetryVerifyRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    batch_id: str
+
+
+class TelemetryVerifyResponse(BaseModel):
+    verified: bool
+    batch_id: str
+    merkle_root: str
+    computed_merkle_root: str
+    reading_count: int
+    ledger_status: LedgerStatus
+    ledger_tx_id: str | None
+    reason: str | None = None
 
 
 class LedgerOperationRead(BaseModel):
@@ -169,3 +266,4 @@ class LedgerOperationRead(BaseModel):
     block_number: str | None
     created_at: datetime
     updated_at: datetime
+

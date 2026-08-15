@@ -23,6 +23,8 @@ export const ACTIONS = {
   PROPOSE_EVENT: "ProposeEvent",
   REVIEW_EVENT: "ReviewEvent",
   REGISTER_DOCUMENT: "RegisterDocument",
+  DECOMMISSION_ASSET: "DecommissionAsset",
+  REGISTER_TELEMETRY_BATCH: "RegisterTelemetryBatch",
 } as const;
 
 export type Action = keyof typeof ACTIONS;
@@ -118,7 +120,16 @@ export async function evaluate(
   transactionName: string,
   ...args: string[]
 ): Promise<unknown> {
-  const allowed = new Set(["GetAsset", "GetEvent", "GetDocumentByHash", "GetAssetTimeline", "GetAssetHistory", "GetEventHistory", "GetLedgerInfo"]);
+  const allowed = new Set([
+    "GetAsset",
+    "GetEvent",
+    "GetDocumentByHash",
+    "GetAssetTimeline",
+    "GetAssetHistory",
+    "GetEventHistory",
+    "GetLedgerInfo",
+    "GetTelemetryBatch",
+  ]);
   if (!allowed.has(transactionName)) throw new Error("unsupported ledger query");
   return withContract(organization, async (contract) => {
     const result = await contract.evaluateTransaction(transactionName, ...args);

@@ -166,6 +166,7 @@ export class FieldLedgerContract extends Contract {
         documentId: requireString(payload.documentId, "documentId", 64),
         eventId,
         assetId,
+        category: optionalString(payload.category, "category", 64) ?? "OTHER",
         sha256Hash: hash,
         contentType: requireString(payload.contentType, "contentType", 100),
         sizeBytes: requireInteger(payload.sizeBytes, "sizeBytes"),
@@ -178,6 +179,71 @@ export class FieldLedgerContract extends Contract {
       await ctx.stub.putState(this.key(ctx, "document", String(record.documentId)), Buffer.from(JSON.stringify(record)));
       event.documentHash = hash;
       await this.put(ctx, eventKey, event);
+      return record;
+    });
+  }
+
+  @Transaction()
+  @Returns("string")
+  public async DecommissionAsset(ctx: Context, operationId: string, payloadJson: string): Promise<string> {
+    const organization = this.organization(ctx, ["Org1MSP"]);
+    return this.idempotent(ctx, operationId, payloadJson, async () => {
+      const payload = parsePayload(payloadJson);
+      const assetId = requireString(payload.assetId, "assetId", 64);
+      const reason = requireString(payload.reason, "reason", 2000);
+      const key = this.key(ctx, "asset", assetId);
+      const asset = await this.get(ctx, key);
+      if (!asset) throw new Error(`asset ${assetId} does not exist`);
+      if (asset.status === "DECOMMISSIONED") throw new Error(`asset ${assetId} is already decommissioned`);
+
+      const updated: JsonRecord = {
+        ...asset,
+        status: "DECOMMISSIONED",
+        decommissionReason: reason,
+        decommissionedBy: requireString(payload.decommissionedBy, "decommissionedBy", 64),
+        decommissionedAt: this.timestamp(ctx),
+        decommissionLedgerTxId: ctx.stub.getTxID(),
+      };
+      await this.put(ctx, key, updated);
+      return updated;
+    });
+  }
+
+  @Transaction()
+  @Returns("string")
+  public async RegisterTelemetryBatch(ctx: Context, operationId: string, payloadJson: string): Promise<string> {
+    const organization = this.organization(ctx, ["Org1MSP"]);
+    return this.idempotent(ctx, operationId, payloadJson, async () => {
+      const payload = parsePayload(payloadJson);
+      const batchId = requireString(payload.batchId, "batchId", 64);
+      const assetId = requireString(payload.assetId, "assetId", 64);
+      const merkleRoot = requireSha256(payload.merkleRoot, "merkleRoot");
+      const readingCount = requireInteger(payload.readingCount, "readingCount");
+      const periodStart = requireString(payload.periodStart, "periodStart", 64);
+      const periodEnd = requireString(payload.periodEnd, "periodEnd", 64);
+
+      if (!(await this.get(ctx, this.key(ctx, "asset", assetId)))) {
+        throw new Error(`asset ${assetId} does not exist`);
+      }
+
+      const batchKey = this.key(ctx, "telemetryBatch", batchId);
+      if (await this.get(ctx, batchKey)) throw new Error(`batch ${batchId} already exists`);
+
+      const record: JsonRecord = {
+        recordType: "TELEMETRY_BATCH",
+        batchId,
+        assetId,
+        merkleRoot,
+        readingCount,
+        periodStart,
+        periodEnd,
+        organization,
+        registeredAt: this.timestamp(ctx),
+        ledgerTxId: ctx.stub.getTxID(),
+      };
+
+      await this.put(ctx, batchKey, record);
+      await this.put(ctx, this.key(ctx, "telemetryMerkle", merkleRoot), record);
       return record;
     });
   }
@@ -207,6 +273,14 @@ export class FieldLedgerContract extends Contract {
     const hash = requireSha256(sha256Hash);
     const record = await this.get(ctx, this.key(ctx, "documentHash", hash));
     return JSON.stringify(record ? { found: true, document: record } : { found: false, sha256Hash: hash });
+  }
+
+  @Transaction(false)
+  @Returns("string")
+  public async GetTelemetryBatch(ctx: Context, batchId: string): Promise<string> {
+    this.organization(ctx);
+    const record = await this.get(ctx, this.key(ctx, "telemetryBatch", requireString(batchId, "batchId", 64)));
+    return JSON.stringify(record ? { found: true, batch: record } : { found: false, batchId });
   }
 
   private async history(ctx: Context, key: string): Promise<JsonRecord[]> {

@@ -49,14 +49,37 @@ def test_maintenance_document_and_approval_flow(
     pdf = b"%PDF-1.7\nFieldLedger maintenance report\n%%EOF\n"
     uploaded = client.post(
         "/api/v1/events/EVT-00042/documents",
+        data={"category": "WORK_ORDER", "notes": "Permiso de trabajo y orden de servicio"},
         files={"file": ("maintenance-report.pdf", pdf, "application/pdf")},
         headers=contractor_headers,
     )
     assert uploaded.status_code == 201
     metadata = uploaded.json()
     assert metadata["sha256_hash"] == hashlib.sha256(pdf).hexdigest()
+    assert metadata["category"] == "WORK_ORDER"
+    assert metadata["notes"] == "Permiso de trabajo y orden de servicio"
     assert metadata["ledger_status"] == "PENDING"
     assert list(fake_storage.objects.values()) == [pdf]
+
+    # Test uploading second document to the SAME event (Multi-Document support 1:N)
+    png_bytes = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
+    uploaded_photo = client.post(
+        "/api/v1/events/EVT-00042/documents",
+        data={"category": "INSPECTION_PHOTO", "notes": "Foto de inspeccion previa"},
+        files={"file": ("valve-inspection.png", png_bytes, "image/png")},
+        headers=contractor_headers,
+    )
+    assert uploaded_photo.status_code == 201
+    assert uploaded_photo.json()["category"] == "INSPECTION_PHOTO"
+
+    # List all documents for this event
+    docs_list = client.get(
+        "/api/v1/events/EVT-00042/documents",
+        headers=auth_headers("auditor"),
+    )
+    assert docs_list.status_code == 200
+    assert len(docs_list.json()) == 2
+    assert {d["category"] for d in docs_list.json()} == {"WORK_ORDER", "INSPECTION_PHOTO"}
 
     fetched = client.get(
         f"/api/v1/documents/{metadata['document_id']}",

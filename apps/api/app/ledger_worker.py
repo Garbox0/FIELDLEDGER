@@ -6,7 +6,7 @@ import httpx
 from sqlalchemy import or_, select
 
 from app.database import SessionLocal
-from app.models import AssetDocument, AssetEvent, LedgerOutbox, LedgerStatus
+from app.models import AssetDocument, AssetEvent, LedgerOutbox, LedgerStatus, TelemetryBatch
 
 
 GATEWAY_URL = os.getenv("FABRIC_GATEWAY_URL", "http://gateway:3000").rstrip("/")
@@ -131,6 +131,8 @@ def update_aggregate(
         if aggregate_type == "EVENT"
         else db.get(AssetDocument, aggregate_id)
         if aggregate_type == "DOCUMENT"
+        else db.get(TelemetryBatch, aggregate_id)
+        if aggregate_type == "TELEMETRY_BATCH"
         else None
     )
     if record is None:

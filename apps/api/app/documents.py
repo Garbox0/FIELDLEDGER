@@ -2,7 +2,8 @@ import hashlib
 from pathlib import PurePath
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -10,7 +11,15 @@ from app.auth import get_current_user, require_roles
 from app.database import get_db
 from app.events import get_event_or_404
 from app.ledger import LedgerClient, enqueue, get_ledger_client, verify_document_hash
-from app.models import AppRole, AssetDocument, EventStatus, LedgerStatus, Organization, User
+from app.models import (
+    AppRole,
+    AssetDocument,
+    DocumentCategory,
+    EventStatus,
+    LedgerStatus,
+    Organization,
+    User,
+)
 from app.schemas import DocumentRead, DocumentVerification
 from app.storage import ObjectStorage, get_storage
 
@@ -53,6 +62,8 @@ def read_document(file: UploadFile) -> tuple[bytes, str]:
 def upload_document(
     event_id: str,
     file: UploadFile = File(...),
+    category: DocumentCategory = Form(default=DocumentCategory.OTHER),
+    notes: str | None = Form(default=None),
     db: Session = Depends(get_db),
     current_user: User = Depends(
         require_roles(
@@ -77,12 +88,14 @@ def upload_document(
         document_id=document_id,
         event_id=event.event_id,
         asset_id=event.asset_id,
+        category=category,
         original_filename=filename,
         content_type=content_type,
         size_bytes=len(content),
         object_key=object_key,
         sha256_hash=sha256_hash,
         uploaded_by=current_user.username,
+        notes=notes[:500] if notes else None,
         ledger_status=LedgerStatus.PENDING,
     )
 
@@ -105,6 +118,7 @@ def upload_document(
             "documentId": document.document_id,
             "eventId": document.event_id,
             "assetId": document.asset_id,
+            "category": document.category.value,
             "sha256Hash": document.sha256_hash,
             "contentType": document.content_type,
             "sizeBytes": document.size_bytes,
@@ -117,7 +131,7 @@ def upload_document(
         db.rollback()
         storage.remove(object_key)
         raise HTTPException(
-            status_code=409, detail="This event already has a document"
+            status_code=409, detail="Document could not be registered"
         ) from exc
     except Exception:
         db.rollback()
@@ -125,6 +139,21 @@ def upload_document(
         raise
     db.refresh(document)
     return document
+
+
+@router.get("/events/{event_id}/documents", response_model=list[DocumentRead])
+def list_event_documents(
+    event_id: str,
+    db: Session = Depends(get_db),
+    _current_user: User = Depends(get_current_user),
+) -> list[AssetDocument]:
+    get_event_or_404(event_id, db)
+    statement = (
+        select(AssetDocument)
+        .where(AssetDocument.event_id == event_id)
+        .order_by(AssetDocument.created_at.asc())
+    )
+    return list(db.scalars(statement))
 
 
 @router.get("/documents/{document_id}", response_model=DocumentRead)
@@ -162,3 +191,4 @@ def verify_document(
         sha256_hash=sha256_hash,
         document=document,
     )
+

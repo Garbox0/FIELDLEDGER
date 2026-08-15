@@ -87,3 +87,63 @@ def test_assets_require_auth_and_viewer_cannot_create(
         "/api/v1/assets", json=asset_payload, headers=auth_headers("viewer")
     )
     assert denied.status_code == 403
+
+
+def test_asset_decommission_flow(
+    client: TestClient, auth_headers, asset_payload: dict[str, object]
+) -> None:
+    headers = auth_headers("operator")
+    created = client.post("/api/v1/assets", json=asset_payload, headers=headers)
+    assert created.status_code == 201
+
+    # Decommission asset
+    reason = "Agotamiento de reservorio y desmantelamiento de linea de inyeccion."
+    decom = client.post(
+        "/api/v1/assets/VALVE-VM-0042/decommission",
+        json={"reason": reason},
+        headers=headers,
+    )
+    assert decom.status_code == 200
+    assert decom.json()["status"] == "DECOMMISSIONED"
+    assert decom.json()["decommission_reason"] == reason
+    assert decom.json()["decommissioned_at"] is not None
+
+    # Cannot decommission twice
+    decom_again = client.post(
+        "/api/v1/assets/VALVE-VM-0042/decommission",
+        json={"reason": "Otra razon"},
+        headers=headers,
+    )
+    assert decom_again.status_code == 409
+
+
+def test_asset_timeline(
+    client: TestClient, auth_headers, asset_payload: dict[str, object]
+) -> None:
+    op_headers = auth_headers("operator")
+    client.post("/api/v1/assets", json=asset_payload, headers=op_headers)
+
+    # Propose maintenance
+    client.post(
+        "/api/v1/assets/VALVE-VM-0042/maintenance",
+        json={
+            "event_id": "EVT-TIMELINE-01",
+            "event_type": "INSPECTION",
+            "description": "Inspeccion de espesor por ultrasonido",
+            "idempotency_key": "idemp-tl-01",
+        },
+        headers=auth_headers("contractor"),
+    )
+
+    timeline_res = client.get(
+        "/api/v1/assets/VALVE-VM-0042/timeline",
+        headers=auth_headers("auditor"),
+    )
+    assert timeline_res.status_code == 200
+    data = timeline_res.json()
+    assert data["asset_id"] == "VALVE-VM-0042"
+    assert len(data["timeline"]) >= 2
+    types = [item["item_type"] for item in data["timeline"]]
+    assert "CREATION" in types
+    assert "EVENT" in types
+
