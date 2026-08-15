@@ -21,6 +21,15 @@ def login(client: httpx.Client, username: str, password: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {response.json()['access_token']}"}
 
 
+def demo_password(username: str) -> str:
+    password = os.getenv(f"DEMO_{username.upper()}_PASSWORD") or os.getenv(
+        "DEMO_PASSWORD", ""
+    )
+    if len(password) < 16:
+        raise RuntimeError(f"password for demo user {username} is missing")
+    return password
+
+
 def wait_for_commit(operation_ids: list[str]) -> list[LedgerOutbox]:
     deadline = time.monotonic() + 240
     while time.monotonic() < deadline:
@@ -41,18 +50,15 @@ def wait_for_commit(operation_ids: list[str]) -> list[LedgerOutbox]:
 
 
 def main() -> None:
-    password = os.getenv("DEMO_PASSWORD", "")
-    if len(password) < 16:
-        raise RuntimeError("DEMO_PASSWORD is missing")
     suffix = f"{int(time.time()):X}"
     asset_id = f"E2E-{suffix}"
     event_id = f"EVT-E2E-{suffix}"
     pdf = f"%PDF-1.7\nFieldLedger E2E {suffix}\n%%EOF\n".encode()
 
     with httpx.Client(timeout=30) as client:
-        operator = login(client, "operator", password)
-        contractor = login(client, "contractor", password)
-        auditor = login(client, "auditor", password)
+        operator = login(client, "operator", demo_password("operator"))
+        contractor = login(client, "contractor", demo_password("contractor"))
+        auditor = login(client, "auditor", demo_password("auditor"))
 
         response = client.post(
             f"{BASE_URL}/api/v1/assets",

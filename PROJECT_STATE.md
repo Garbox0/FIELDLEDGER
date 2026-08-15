@@ -1,6 +1,6 @@
 # Estado del proyecto FieldLedger
 
-Última verificación: 15 de agosto de 2026, 00:41 ART / 03:41 UTC.
+Última verificación: 15 de agosto de 2026, 10:05 ART / 13:05 UTC.
 
 Este es el punto de entrada para el relevo por parte de una futura IA o de un
 ingeniero. Debe actualizarse después de cada checkpoint. Nunca colocar aquí
@@ -44,7 +44,9 @@ a nivel de bytes no.
 | Raíz del proyecto | `/home/pi/fieldledger` |
 | Repositorio | `https://github.com/Garbox0/FIELDLEDGER.git`, rama `main` |
 | API | `http://127.0.0.1:8095` |
-| Interfaz | `http://127.0.0.1:8095/app/`, solo loopback/túnel SSH |
+| Interfaz local | `http://127.0.0.1:8095/app/`, loopback/túnel SSH |
+| Interfaz pública | `https://fieldledger.aerosftp.com/app/`, Cloudflare Tunnel |
+| Conector público | `cloudflared` 2026.8.2, servicio systemd activo |
 | Fabric | `2.5.16` LTS, canal `fieldledgerchannel` |
 | Chaincode | `fieldledger` 1.0, secuencia 1 |
 | Endorsement | `AND('Org1MSP.peer','Org2MSP.peer')` |
@@ -66,7 +68,7 @@ y únicamente sobre loopback.
 
 ## Evidencia objetiva
 
-- Pruebas Python: `15 passed, 1 upstream warning`.
+- Pruebas Python: `17 passed, 1 upstream warning`.
 - Pruebas de chaincode: `2 passed`; pruebas de gateway: `2 passed`.
 - Alembic: `No new upgrade operations detected.`
 - El demo anterior al ledger fue reconciliado en los bloques 8 a 11; las cuatro
@@ -98,6 +100,12 @@ y únicamente sobre loopback.
   corrigió usando `python -m pytest`. Las 15 pruebas pasaron en CI.
 - GitHub Actions run `31861816402`: las tres tareas de CI y GitGuardian
   aprobaron el commit final de documentación antes del merge.
+- GitHub Actions run `31885949334`: API, chaincode, gateway, auditorías y
+  GitGuardian aprobaron la preparación de la demo pública.
+- La prueba externa de `fieldledger.aerosftp.com` confirmó HTTPS mediante
+  Cloudflare, UI HTTP 200, visita `VIEWER` con lectura 200 y escritura 403,
+  `/docs` 404, CSP y `X-Frame-Options: DENY`. El origen sigue en loopback y no
+  se abrió ningún puerto del router.
 - Una repetición del bootstrap expuso y corrigió un error de detección del
   chaincode ya confirmado. El intento de aprobar nuevamente la secuencia 1
   quedó inválido en el bloque 20 (`ENDORSEMENT_POLICY_FAILURE`) y no cambió el
@@ -127,6 +135,10 @@ FastAPI/Starlette de `httpx` a `httpx2`; no es una falla.
 - UI web responsive en español para login, activos, mantenimiento, evidencia,
   actividad del ledger y verificación; usa JavaScript nativo, `sessionStorage`
   para el JWT y no persiste contraseñas.
+- Acceso público opcional como `VIEWER`, sin permiso de escritura, descarga de
+  objetos ni verificación documental.
+- Contraseñas separadas por usuario demo, límite de fallos de login por IP,
+  hosts permitidos y OpenAPI deshabilitado en modo público.
 - `GET /api/v1/ledger/operations` expone a usuarios autenticados estado,
   transaction ID y bloque, sin payload ni errores internos.
 - Headers CSP, anti-framing, `nosniff`, referrer y permissions policy sobre la UI.
@@ -160,7 +172,9 @@ PostgreSQL, MinIO, JWT, usuarios demo y gateway interno. Nunca imprimirlo ni
 copiarlo. Las claves privadas de Fabric están bajo el árbol ignorado
 `.runtime` y se montan únicamente en el gateway.
 
-Los usuarios demo comparten el `DEMO_PASSWORD` generado:
+Cada usuario demo tiene una contraseña generada distinta bajo
+`DEMO_<USUARIO>_PASSWORD`. `DEMO_PASSWORD` se conserva únicamente como fallback
+compatible; no imprimir ninguno de esos valores.
 
 | Usuario | Rol de aplicación | Organización / identidad Fabric utilizada |
 |---|---|---|
@@ -204,8 +218,9 @@ explícitamente backups verificados antiguos si aparece la alerta de 15 GiB.
 - Las identidades `cryptogen` son de laboratorio; no existen CA productiva,
   HSM, rotación de certificados ni custodia independiente entre empresas.
 - No existen todavía telemetría/MQTT, Prometheus/Grafana ni despliegue continuo.
-- No están implementados revocación/refresh de JWT, rate limiting, TLS, OIDC,
-  alta disponibilidad ni recuperación externa ante desastres.
+- No están implementados revocación/refresh de JWT, OIDC, rate limiting
+  distribuido, TLS entre Cloudflare y el origen, alta disponibilidad ni
+  recuperación externa ante desastres.
 - Se permite un documento primario por evento de mantenimiento.
 - El hard-delete de un activo solo es posible antes de que tenga eventos; el
   producto debería incorporar un flujo auditable de baja.
@@ -217,9 +232,9 @@ explícitamente backups verificados antiguos si aparece la alerta de 15 GiB.
 
 ## Próximo paso exacto
 
-Ejecutar manualmente el flujo completo cambiando entre operadora, contratista y
-auditor: alta, propuesta, evidencia, aprobación, commit y verificación
-original/modificada. La apariencia inicial ya fue aprobada. Capturar luego dos
+Abrir `https://fieldledger.aerosftp.com/app/` y ejecutar manualmente el flujo
+completo cambiando entre operadora, contratista y auditor: alta, propuesta,
+evidencia, aprobación, commit y verificación original/modificada. Capturar dos
 o tres imágenes sin datos sensibles para el README/portfolio y corregir los
 detalles que aparezcan antes de comenzar telemetría.
 

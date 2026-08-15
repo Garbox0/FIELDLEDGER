@@ -75,12 +75,18 @@ ssh -L 8095:127.0.0.1:8095 usuario@host-raspberry
 
 PostgreSQL, MinIO y Fabric Gateway no publican puertos en el host.
 
+La demo remota usa `fieldledger.aerosftp.com` mediante Cloudflare Tunnel. El
+conector sale desde la Pi hacia Cloudflare y apunta al mismo puerto de
+loopback; no se abre el router. En ese modo, `/docs` y OpenAPI quedan
+deshabilitados y puede habilitarse un ingreso público con rol `VIEWER`.
+
 ## Interfaz web
 
 La UI usa HTML, CSS y JavaScript nativos servidos por FastAPI. No agrega
 framework, build de frontend, contenedor ni puerto. Incluye:
 
 - login y cambio de identidad por rol;
+- entrada pública opcional en modo lectura;
 - listado y detalle de activos;
 - alta de activos para operadora/administrador;
 - propuesta de mantenimiento para contratista;
@@ -113,6 +119,8 @@ generado de Fabric, y está excluido de Git.
 
 ```text
 POST   /api/v1/auth/login
+GET    /api/v1/auth/demo
+POST   /api/v1/auth/demo
 GET    /api/v1/auth/me
 POST   /api/v1/assets
 GET    /api/v1/assets[/{asset_id}]
@@ -155,7 +163,7 @@ Comprobada y desplegada el 14 de agosto de 2026:
 | MinIO | RELEASE.2025-07-23T15-54-02Z |
 
 La última aceptación en vivo confirmó los bloques 21 a 24, verificó el PDF
-original y rechazó una copia modificada. Pasaron 15/15 pruebas Python, 2/2 del
+original y rechazó una copia modificada. Pasaron 17/17 pruebas Python, 2/2 del
 chaincode y 2/2 del gateway. El 14 de agosto de 2026, `pip-audit` y ambos
 `npm audit --omit=dev` informaron cero vulnerabilidades conocidas.
 
@@ -172,7 +180,8 @@ y [API de Gateway](https://hyperledger.github.io/fabric-gateway/main/api/node/in
 - Todavía no existen telemetría MQTT, dashboards, despliegue continuo, OIDC,
   TLS de ingreso, alta disponibilidad, HSM ni recuperación externa.
 - Se admite un documento primario por evento de mantenimiento.
-- Los JWT no pueden revocarse antes de vencer y el login no tiene rate limit.
+- Los JWT no pueden revocarse antes de vencer. El límite de intentos de login
+  vive en memoria de un único proceso; no reemplaza un control distribuido.
 - El kernel de la Pi no aplica los límites de memoria declarados por Docker.
 - El HDD conectado fue descartado: las escrituras sobre una región legible
   provocaron reinicios USB. Está desvinculado y en cuarentena por puerto hasta

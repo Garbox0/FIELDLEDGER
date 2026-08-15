@@ -137,6 +137,10 @@ evidencia, decisiones, estado del ledger y verificación. Cada rol ve las
 acciones que le corresponden, pero la seguridad real se vuelve a comprobar en
 la API; ocultar un botón no concede ni reemplaza permisos.
 
+La versión pública permite entrar como visitante de solo lectura. Las
+identidades de operadora, contratista y auditor conservan contraseñas separadas
+y se usan durante una demostración controlada.
+
 No se agregó un framework de frontend. HTML, CSS y JavaScript nativos alcanzan
 para las pantallas actuales y agregan menos carga a la Pi.
 
@@ -232,7 +236,7 @@ integración real con el ledger está probada, pero la topología usa un único
 host, la red oficial de pruebas e identidades de laboratorio.
 
 Producción todavía requiere infraestructura independiente por organización,
-ciclo de vida de certificados/HSM, TLS, OIDC, rate limiting, gestión de
+ciclo de vida de certificados/HSM, TLS interno, OIDC, rate limiting distribuido, gestión de
 secretos, alta disponibilidad, recuperación externa, observabilidad, gobierno
 formal y revisión de seguridad.
 

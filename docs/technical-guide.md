@@ -97,6 +97,18 @@ Las claves JWT de aplicación y las claves privadas de Fabric son distintas. El
 árbol de identidades ignorado `.runtime` se monta como solo lectura únicamente
 en el gateway interno.
 
+Cada usuario demo puede tener su propia variable
+`DEMO_<USUARIO>_PASSWORD`; `DEMO_PASSWORD` queda como fallback para instalaciones
+anteriores. `make seed` actualiza el hash Argon2 si la contraseña configurada
+cambió y nunca imprime el valor.
+
+Con `PUBLIC_DEMO_VIEWER=true`, `POST /api/v1/auth/demo` entrega una sesión para
+`viewer` sin contraseña. Ese rol solo lee activos, eventos, estados y metadatos;
+no descarga los bytes de MinIO, verifica archivos ni escribe datos. Los fallos
+de login normal se limitan por IP con una ventana en memoria. Esta implementación
+alcanza para el proceso único de la Pi; un despliegue replicado necesita un
+contador compartido o una regla equivalente en el proxy.
+
 ## Outbox transaccional
 
 El alta de activos, la propuesta de eventos, el registro de evidencia y la
@@ -173,6 +185,8 @@ adicionales sobre la Raspberry Pi.
 - `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy` y
   `Permissions-Policy` se aplican sobre `/` y `/app`.
 - No hay CORS ni puerto nuevo porque UI y API comparten origen.
+- En modo público aparece `Explorar en modo lectura`; `/docs`, `/redoc` y
+  `/openapi.json` quedan deshabilitados.
 
 `GET /api/v1/ledger/operations` devuelve las últimas operaciones autenticadas
 con estado, intentos, transaction ID y bloque. No expone payload ni error
@@ -182,6 +196,8 @@ interno de la outbox.
 
 ```text
 POST   /api/v1/auth/login
+GET    /api/v1/auth/demo
+POST   /api/v1/auth/demo
 GET    /api/v1/auth/me
 
 POST   /api/v1/assets
@@ -228,6 +244,22 @@ Abrir `http://127.0.0.1:8095/app/`. Desde otra máquina utilizar un túnel SSH:
 ssh -L 8095:127.0.0.1:8095 usuario@host-raspberry
 ```
 
+Para la publicación remota se reserva `fieldledger.aerosftp.com` en un túnel
+Cloudflare independiente. La configuración de la Pi debe incluir:
+
+```dotenv
+PUBLIC_DEMO_VIEWER=true
+TRUSTED_HOSTS=fieldledger.aerosftp.com,127.0.0.1,localhost,api,testserver
+TRUST_CF_CONNECTING_IP=true
+LOGIN_RATE_LIMIT_ATTEMPTS=10
+LOGIN_RATE_LIMIT_WINDOW_SECONDS=60
+```
+
+La credencial específica del túnel es un secreto operativo: queda bajo
+`/etc/cloudflared` con acceso de root y nunca en Git, `.env` ni esta
+documentación. El certificado amplio usado para crear el túnel se elimina de
+la cuenta `pi` después de registrar el DNS.
+
 `fabric-up.sh` clona el commit fijado de samples en `.runtime`, descarga el
 archivo binario ARM64 exacto de Fabric, fija las imágenes Docker, compila y
 prueba el chaincode, crea el canal de tres organizaciones y confirma el
@@ -250,7 +282,7 @@ Las pruebas unitarias fuerzan `LEDGER_ENABLED=false` para no depender de
 infraestructura externa; la prueba específica de verificación habilita un
 doble controlado. `make ledger-smoke` sigue siendo la aceptación real de Fabric.
 
-GitHub Actions ejecuta en cada PR y push a `main` las 15 pruebas Python, las
+GitHub Actions ejecuta en cada PR y push a `main` las 17 pruebas Python, las
 pruebas de chaincode/gateway y las auditorías `pip-audit`/`npm audit`. El
 workflow tiene permisos de repositorio de solo lectura y no usa secretos.
 
@@ -307,8 +339,9 @@ después de desconectar físicamente o reemplazar el dispositivo.
 - Gateway: solo redes Docker; ningún puerto del host.
 - PostgreSQL/MinIO: únicamente la red interna de datos.
 - Puertos Fabric: loopback para herramientas administrativas locales.
-- No existen forwarding del router, Tailscale Funnel, ruta Cloudflare ni
-  listener público.
+- No existe forwarding del router. La única ruta pública prevista es
+  `fieldledger.aerosftp.com` mediante Cloudflare Tunnel hacia la API en
+  loopback.
 - Las solicitudes al gateway requieren un bearer token generado y comparado en
   tiempo constante.
 - API y gateway usan raíz de solo lectura, `no-new-privileges` y filesystems
@@ -362,5 +395,5 @@ La red actual utiliza un único host físico e identidades `cryptogen`. Producci
 requiere infraestructura independiente por organización, Fabric CA o un ciclo
 de vida equivalente, TLS de ingreso, secretos administrados/HSM,
 backup/restore del estado del ledger, alta disponibilidad, observabilidad,
-OIDC, rate limiting, políticas formales y revisión de seguridad. La red oficial
+OIDC, rate limiting distribuido, políticas formales y revisión de seguridad. La red oficial
 de pruebas nunca debe presentarse como producción.

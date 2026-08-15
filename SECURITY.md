@@ -21,12 +21,18 @@ de cada publicación. `.env.example` contiene únicamente marcadores.
 ## Exposición de red
 
 La API/UI se vincula a `127.0.0.1`; PostgreSQL, MinIO y Fabric Gateway no
-publican puertos. Para una demostración remota usar un túnel SSH autenticado,
-no port forwarding del router, Funnel ni un proxy público improvisado.
+publican puertos. La demo remota se publica únicamente mediante Cloudflare
+Tunnel, con TLS en el borde y sin port forwarding del router. El hostname
+público apunta al servicio web completo; `/docs` y OpenAPI se deshabilitan.
 
-Antes de cualquier despliegue accesible por terceros se requieren, como mínimo,
-TLS, OIDC o IAM equivalente, rate limiting, gestión de secretos, certificados
-productivos, observabilidad, backups externos probados y revisión de seguridad.
+El acceso sin contraseña está limitado al rol `VIEWER`. Los usuarios con
+permisos de escritura usan claves distintas y el login limita fallos repetidos
+por IP. El token del túnel se trata como secreto y no se guarda en Git.
+
+Esto no vuelve productivo al laboratorio. Un despliegue empresarial todavía
+requiere OIDC o IAM equivalente, rate limiting distribuido, gestión central de
+secretos, certificados productivos, observabilidad, backups externos probados
+y revisión de seguridad.
 
 ## Dependencias
 
