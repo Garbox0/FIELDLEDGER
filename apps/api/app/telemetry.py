@@ -8,11 +8,10 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.assets import get_asset_or_404
-from app.auth import get_current_user, require_roles
+from app.auth import get_current_user
 from app.database import get_db
 from app.ledger import enqueue
 from app.models import (
-    AppRole,
     LedgerStatus,
     Organization,
     TelemetryBatch,
