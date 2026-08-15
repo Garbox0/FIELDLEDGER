@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="FieldLedger: integridad de activos, mantenimiento y telemetría verificable en Oil &amp; Gas.">
   <title>FieldLedger · Integridad Operacional &amp; Blockchain en Oil &amp; Gas</title>
-  <link rel="stylesheet" href="/app/styles.css?v=20260815.3">
-  <script src="/app/app.js?v=20260815.3" defer></script>
+  <link rel="stylesheet" href="/app/styles.css?v=20260815.4">
+  <script src="/app/app.js?v=20260815.4" defer></script>
 </head>
 <body>
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
@@ -214,11 +214,11 @@
           </div>
 
           <!-- Lotes anclados en Fabric -->
-          <div class="panel table-panel" style="margin-top: 1.5rem;">
+          <div class="panel table-panel batches-panel">
             <div class="panel-header-sub">
               <div>
                 <strong>Lotes de telemetría certificados en Fabric</strong>
-                <p class="muted" style="margin: .2rem 0 0; font-size: .7rem;">Las lecturas crudas residen en base de datos; la raíz Merkle SHA-256 ancla inalterablemente el lote completo en el ledger.</p>
+                <p class="muted batches-description">Las lecturas crudas residen en base de datos; la raíz Merkle SHA-256 ancla inalterablemente el lote completo en el ledger.</p>
               </div>
             </div>
             <div class="table-scroll">
@@ -343,7 +343,7 @@
           <input name="notes" maxlength="500" placeholder="Ej: Prueba hidrostática 3000 PSI x 15 min según API 6A">
         </label>
       </div>
-      <label class="drop-zone" for="document-file" style="margin-top: 1rem;"><span class="upload-icon" aria-hidden="true">↑</span><strong>Seleccionar archivo</strong><span id="document-file-name">PDF, JPEG o PNG · máximo 10 MiB</span><input id="document-file" name="file" type="file" accept="application/pdf,image/jpeg,image/png" required></label>
+      <label class="drop-zone drop-zone-spaced" for="document-file"><span class="upload-icon" aria-hidden="true">↑</span><strong>Seleccionar archivo</strong><span id="document-file-name">PDF, JPEG o PNG · máximo 10 MiB</span><input id="document-file" name="file" type="file" accept="application/pdf,image/jpeg,image/png" required></label>
       <p class="form-hint">El archivo físico queda en el almacenamiento privado de MinIO. Su huella SHA-256 y categoría se registran inalterablemente en Fabric.</p>
       <div class="dialog-actions"><button class="button button-ghost" type="button" data-close="document-dialog">Cancelar</button><button class="button button-primary" type="submit">Guardar y anclar evidencia</button></div>
     </form>
@@ -372,7 +372,7 @@
 
   <!-- MODAL: TRAZABILIDAD & TIMELINE DEL ACTIVO -->
   <dialog id="timeline-dialog">
-    <div class="dialog-card" style="max-width: 52rem;">
+    <div class="dialog-card dialog-card-wide">
       <div class="dialog-heading"><div><p class="eyebrow">TRAZABILIDAD EN BLOCKCHAIN</p><h2 id="timeline-title">Línea de tiempo del activo</h2></div><button class="dialog-close" type="button" data-close="timeline-dialog" aria-label="Cerrar">×</button></div>
       <p id="timeline-subtitle" class="dialog-context">—</p>
       <div id="timeline-body" class="timeline-container" aria-live="polite"></div>
@@ -384,7 +384,7 @@
   <dialog id="preview-dialog">
     <div class="dialog-card dialog-small">
       <div class="dialog-heading"><div><p class="eyebrow">DETALLE DE EVIDENCIA</p><h2 id="preview-filename">Archivo</h2></div><button class="dialog-close" type="button" data-close="preview-dialog" aria-label="Cerrar">×</button></div>
-      <div id="preview-content" class="preview-body" style="margin-top: 1rem;"></div>
+      <div id="preview-content" class="preview-body preview-body-spaced"></div>
       <div class="dialog-actions"><button class="button button-ghost" type="button" data-close="preview-dialog">Cerrar</button></div>
     </div>
   </dialog>

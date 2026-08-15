@@ -249,7 +249,7 @@ async function startSession() {
     clearInterval(state.timer);
     state.timer = setInterval(() => {
       if (!document.hidden) refreshAll(true);
-    }, 8000);
+    }, 30000);
   } catch (problem) {
     logout(false);
     $("#login-error").textContent = problem.message;

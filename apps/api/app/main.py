@@ -57,7 +57,9 @@ async def protect_web_ui(request: Request, call_next):
     if request.url.path == "/" or request.url.path.startswith("/app"):
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; connect-src 'self'; img-src 'self' data:; "
-            "style-src 'self'; script-src 'self'; object-src 'none'; "
+            "style-src 'self' 'unsafe-inline'; "
+            "script-src 'self' https://static.cloudflareinsights.com; "
+            "object-src 'none'; "
             "base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
         )
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"

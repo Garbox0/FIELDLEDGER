@@ -414,6 +414,13 @@ dialog::backdrop { background: rgba(10, 31, 29, .58); backdrop-filter: blur(4px)
   .dialog-actions .button { width: 100%; }
 }
 
+/* Utility classes replacing inline styles (CSP compliance) */
+.batches-panel { margin-top: 1.5rem; }
+.batches-description { margin: .2rem 0 0; font-size: .7rem; }
+.drop-zone-spaced { margin-top: 1rem; }
+.dialog-card-wide { max-width: 52rem; }
+.preview-body-spaced { margin-top: 1rem; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation-duration: .01ms !important; }
 }
