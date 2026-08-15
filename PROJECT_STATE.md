@@ -6,6 +6,10 @@ Este es el punto de entrada para el relevo por parte de una futura IA o de un
 ingeniero. Debe actualizarse después de cada checkpoint. Nunca colocar aquí
 contraseñas, tokens, claves privadas ni contenidos de `.env`.
 
+Mantener la documentación en español directo. Priorizar hechos comprobados,
+decisiones y límites; evitar slogans, frases promocionales y conclusiones
+genéricas que no agreguen información.
+
 ## Checkpoint actual
 
 La interfaz web y el flujo real de mantenimiento respaldado por ledger están

@@ -1,14 +1,14 @@
 # FieldLedger: guía de explicación no técnica
 
-Esta guía ayuda a explicar cada sección a gerentes, auditores, referentes del
-negocio o entrevistadores sin exagerar lo que puede hacer el prototipo actual.
+Esta guía sirve para contar el proyecto a gerentes, auditores o entrevistadores
+sin entrar de inmediato en el código y sin atribuirle funciones que todavía no
+tiene.
 
 ## Explicación en una frase
 
-> FieldLedger administra activos y mantenimiento en sistemas convencionales,
-> mientras una blockchain permisionada ofrece a operadora, contratista y
-> auditor un registro compartido y resistente a alteraciones de los hechos
-> críticos y las huellas digitales de documentos.
+> FieldLedger guarda el trabajo diario en una aplicación convencional y usa
+> una blockchain privada para que operadora, contratista y auditor puedan
+> comprobar los hitos importantes y la integridad de los documentos.
 
 ## El problema que resuelve
 
@@ -17,8 +17,9 @@ auditado por una tercera. Cada una puede tener una base, informe, correo o PDF
 distinto. Cuando las copias no coinciden, demostrar qué se entregó y qué se
 aceptó resulta lento.
 
-FieldLedger crea un workflow común y registra los hitos de mayor valor en un
-ledger que ninguna parte puede reescribir silenciosamente por sí sola.
+FieldLedger les da un mismo flujo de trabajo. Los pasos acordados también se
+registran en un ledger que una sola de las partes no puede reescribir por su
+cuenta.
 
 ## Por qué no se coloca todo en blockchain
 
@@ -131,17 +132,17 @@ GiB.
 
 ### Interfaz web
 
-La interfaz reúne el relato completo en español: login, activos, propuestas,
+La interfaz reúne el flujo completo en español: login, activos, propuestas,
 evidencia, decisiones, estado del ledger y verificación. Cada rol ve las
 acciones que le corresponden, pero la seguridad real se vuelve a comprobar en
 la API; ocultar un botón no concede ni reemplaza permisos.
 
-No se agregó un framework de frontend. Esto reduce dependencias y consumo en
-la Pi sin sacrificar el flujo demostrable.
+No se agregó un framework de frontend. HTML, CSS y JavaScript nativos alcanzan
+para las pantallas actuales y agregan menos carga a la Pi.
 
-## Historia para una demostración
+## Guion de la demo
 
-La demostración verificada es:
+El recorrido es el siguiente:
 
 1. Una operadora da de alta una válvula identificada de forma única.
 2. Una contratista propone mantenimiento preventivo.
@@ -162,15 +163,14 @@ manual del relato completo y capturar material de portfolio sin datos sensibles.
 
 ### Pitch de 30 segundos
 
-> Construí un prototipo de integridad de activos para Oil & Gas sobre una
-> Raspberry Pi. Modela el trabajo entre operadora, contratista y auditor con
-> FastAPI, PostgreSQL y MinIO, y usa Hyperledger Fabric únicamente para los
-> hechos que requieren confianza compartida. Implementé una outbox durable,
-> endorsement entre organizaciones y verificación real de documentos por
-> SHA-256. No es una demo simulada: las operaciones producen transacciones y
-> bloques reales.
+> Construí FieldLedger para probar un flujo de mantenimiento entre una
+> operadora, una contratista y un auditor. La aplicación corre en una Raspberry
+> Pi con FastAPI, PostgreSQL y MinIO. Los documentos quedan privados y Fabric
+> registra sus huellas y los cambios de estado. Si la red se demora, una outbox
+> conserva la operación y la reintenta. Los IDs de transacción y los bloques que
+> se ven en la demo son reales.
 
-### Qué competencias evidencia
+### Qué muestra de tu trabajo
 
 - análisis de dominio y separación entre datos operativos y evidencia;
 - backend Python, modelado SQL, migraciones y autorización por roles;
@@ -178,16 +178,16 @@ manual del relato completo y capturar material de portfolio sin datos sensibles.
 - consistencia distribuida, idempotencia, reintentos y estados observables;
 - almacenamiento de objetos e integridad criptográfica;
 - Docker, operación Linux/ARM64, seguridad básica, backups y diagnóstico;
-- capacidad de declarar límites y diseñar una evolución hacia producción.
+- documentación de límites, fallas encontradas y tareas pendientes.
 
 ### Cómo ofrecerlo a una petrolera
 
-No ofrecer “una blockchain lista para instalar”. Proponer primero un
-descubrimiento o piloto acotado para un flujo con fricción comprobable, por
-ejemplo informes de inspección de válvulas, certificados de mantenimiento o
-aceptación de trabajos entre empresas.
+No conviene presentarlo como “una blockchain lista para instalar”. El punto de
+partida sería elegir un problema pequeño que hoy obligue a comparar planillas,
+correos o PDFs: por ejemplo, inspecciones de válvulas, certificados de
+mantenimiento o aceptación de trabajos entre empresas.
 
-Una propuesta responsable debería:
+Antes de armar un piloto habría que:
 
 1. identificar las organizaciones y quién avala cada hito;
 2. medir cuánto cuesta hoy reconciliar evidencia o resolver disputas;
@@ -196,9 +196,9 @@ Una propuesta responsable debería:
 5. ejecutar un piloto sin control directo sobre equipos de campo;
 6. evaluar resultados antes de diseñar infraestructura productiva.
 
-El valor potencial no es “usar blockchain”, sino reducir tiempo de
-reconciliación, hacer visible el estado de aprobación y demostrar integridad de
-evidencia entre partes.
+La prueba tiene sentido si permite medir menos tiempo comparando versiones,
+aprobaciones más claras o menos discusiones sobre qué archivo se entregó. La
+blockchain por sí sola no es el resultado.
 
 ## Respuestas a preguntas habituales
 
@@ -255,5 +255,6 @@ Pendiente:
 - Prometheus/Grafana y despliegue continuo;
 - IAM empresarial, certificados productivos, HA y gobierno multi-host.
 
-Resumen honesto: el backend de integridad funciona end-to-end; la experiencia
-de usuario y el modelo operativo de producción todavía son trabajo futuro.
+Estado actual: el flujo de integridad funciona de punta a punta. La interfaz
+todavía necesita una aceptación visual completa y el despliegue no tiene las
+condiciones operativas de un sistema de producción.

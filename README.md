@@ -2,31 +2,29 @@
 
 [![CI](https://github.com/Garbox0/FIELDLEDGER/actions/workflows/ci.yml/badge.svg)](https://github.com/Garbox0/FIELDLEDGER/actions/workflows/ci.yml)
 
-FieldLedger es un prototipo de integridad de activos y mantenimiento para la
-industria de Oil & Gas. Mantiene los datos operativos en PostgreSQL, los
-archivos de evidencia en MinIO y registra en Hyperledger Fabric hechos
-compactos que deben poder auditarse entre distintas organizaciones.
+FieldLedger registra activos, trabajos de mantenimiento y evidencia entre una
+operadora, una contratista y un auditor. PostgreSQL conserva los datos de
+trabajo, MinIO guarda los archivos privados y Hyperledger Fabric registra los
+hitos que las tres partes necesitan verificar.
 
-El hito actual, desplegado en una Raspberry Pi, incluye una interfaz web en
-español, una red Fabric real de tres organizaciones, chaincode, gateway
-privado, outbox transaccional y verificación documental respaldada por el
-ledger. El sistema en ejecución no simula la blockchain.
+El proyecto corre en una Raspberry Pi. Tiene interfaz web en español, una red
+Fabric de tres organizaciones, chaincode, gateway privado, outbox
+transaccional y verificación de documentos por SHA-256. Las operaciones que la
+interfaz muestra como confirmadas provienen de transacciones reales de Fabric.
 
-## Qué demuestra el proyecto
+## Qué hay funcionando
 
-- Modelado de un flujo real entre operadora, contratista y auditor.
-- Uso selectivo de blockchain donde existe una brecha de confianza entre
-  organizaciones, sin convertirla en una base de datos generalista.
-- Entrega confiable desde PostgreSQL hacia Fabric mediante una outbox
-  transaccional, reintentos e idempotencia.
-- Integridad documental mediante SHA-256 sin publicar documentos privados en
-  la cadena.
-- Criterio operativo sobre seguridad, capacidad, backups y límites de una
-  plataforma edge de recursos acotados.
+- Alta y consulta de activos.
+- Propuesta de mantenimiento por la contratista y aprobación o rechazo por la
+  operadora.
+- Entrega de cada cambio a Fabric mediante una outbox con reintentos e IDs
+  idempotentes.
+- Archivos privados en MinIO y sus huellas SHA-256 en el ledger.
+- Consulta del ID de transacción y del bloque confirmado.
+- Backups y controles de espacio pensados para la SD de la Raspberry Pi.
 
-Puede presentarse como un prototipo funcional de portfolio o como base para un
-piloto controlado. No debe describirse como una plataforma lista para
-producción.
+Es un prototipo funcional para portfolio y una posible base de piloto. Todavía
+no es un sistema de producción.
 
 ## Arquitectura
 
