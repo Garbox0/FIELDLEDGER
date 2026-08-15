@@ -8,10 +8,11 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.assets import get_asset_or_404
-from app.auth import get_current_user
+from app.auth import get_current_user, require_roles
 from app.database import get_db
 from app.ledger import enqueue
 from app.models import (
+    AppRole,
     LedgerStatus,
     Organization,
     TelemetryBatch,
@@ -258,7 +259,7 @@ def verify_telemetry_batch(
     payload: TelemetryVerifyRequest,
     db: Session = Depends(get_db),
     _current_user: User = Depends(
-        require_roles(AppRole.ADMIN, AppRole.OPERATOR, AppRole.AUDITOR)
+        require_roles(AppRole.ADMIN, AppRole.OPERATOR, AppRole.AUDITOR, AppRole.CONTRACTOR, AppRole.VIEWER)
     ),
 ) -> TelemetryVerifyResponse:
     batch = db.get(TelemetryBatch, payload.batch_id)
