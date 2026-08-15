@@ -1,36 +1,37 @@
 # FieldLedger
 
-FieldLedger es un prototipo de integridad de activos y mantenimiento para la
-industria de Oil & Gas. Mantiene los datos operativos en PostgreSQL, los
-archivos de evidencia en MinIO y registra en Hyperledger Fabric hechos
-compactos que deben poder auditarse entre distintas organizaciones.
+[![CI](https://github.com/Garbox0/FIELDLEDGER/actions/workflows/ci.yml/badge.svg)](https://github.com/Garbox0/FIELDLEDGER/actions/workflows/ci.yml)
 
-El hito actual, desplegado en una Raspberry Pi, incluye una red Fabric real de
-tres organizaciones, chaincode, gateway privado, outbox transaccional y
-verificación documental respaldada por el ledger. El sistema en ejecución no
-simula la blockchain.
+FieldLedger registra activos, trabajos de mantenimiento y evidencia entre una
+operadora, una contratista y un auditor. PostgreSQL conserva los datos de
+trabajo, MinIO guarda los archivos privados y Hyperledger Fabric registra los
+hitos que las tres partes necesitan verificar.
 
-## Qué demuestra el proyecto
+El proyecto corre en una Raspberry Pi. Tiene interfaz web en español, una red
+Fabric de tres organizaciones, chaincode, gateway privado, outbox
+transaccional y verificación de documentos por SHA-256. Las operaciones que la
+interfaz muestra como confirmadas provienen de transacciones reales de Fabric.
 
-- Modelado de un flujo real entre operadora, contratista y auditor.
-- Uso selectivo de blockchain donde existe una brecha de confianza entre
-  organizaciones, sin convertirla en una base de datos generalista.
-- Entrega confiable desde PostgreSQL hacia Fabric mediante una outbox
-  transaccional, reintentos e idempotencia.
-- Integridad documental mediante SHA-256 sin publicar documentos privados en
-  la cadena.
-- Criterio operativo sobre seguridad, capacidad, backups y límites de una
-  plataforma edge de recursos acotados.
+## Qué hay funcionando
 
-Puede presentarse como un prototipo funcional de portfolio o como base para un
-piloto controlado. No debe describirse como una plataforma lista para
-producción.
+- Alta y consulta de activos.
+- Propuesta de mantenimiento por la contratista y aprobación o rechazo por la
+  operadora.
+- Entrega de cada cambio a Fabric mediante una outbox con reintentos e IDs
+  idempotentes.
+- Archivos privados en MinIO y sus huellas SHA-256 en el ledger.
+- Consulta del ID de transacción y del bloque confirmado.
+- Backups y controles de espacio pensados para la SD de la Raspberry Pi.
+
+Es un prototipo funcional para portfolio y una posible base de piloto. Todavía
+no es un sistema de producción.
 
 ## Arquitectura
 
 ```mermaid
 flowchart LR
-    Usuarios[Operadora / Contratista / Auditor] --> API[FastAPI]
+    Usuarios[Operadora / Contratista / Auditor] --> UI[Interfaz web]
+    UI --> API[FastAPI]
     API --> DB[(PostgreSQL)]
     API --> Archivos[(MinIO)]
     API --> Outbox[(Outbox del ledger)]
@@ -64,9 +65,32 @@ make ledger-status
 curl -fsS http://127.0.0.1:8095/ready
 ```
 
-La API y la interfaz OpenAPI se vinculan únicamente a loopback en
-`http://127.0.0.1:8095` y `/docs`. PostgreSQL, MinIO y Fabric Gateway no
-publican puertos en el host.
+La aplicación se abre en `http://127.0.0.1:8095/app/` y OpenAPI en `/docs`.
+Ambas se vinculan únicamente a loopback. Para acceder desde otra computadora,
+crear un túnel sin publicar el servicio:
+
+```bash
+ssh -L 8095:127.0.0.1:8095 usuario@host-raspberry
+```
+
+PostgreSQL, MinIO y Fabric Gateway no publican puertos en el host.
+
+## Interfaz web
+
+La UI usa HTML, CSS y JavaScript nativos servidos por FastAPI. No agrega
+framework, build de frontend, contenedor ni puerto. Incluye:
+
+- login y cambio de identidad por rol;
+- listado y detalle de activos;
+- alta de activos para operadora/administrador;
+- propuesta de mantenimiento para contratista;
+- evidencia privada, aprobación y rechazo;
+- actividad de la outbox con estado, transaction ID y bloque;
+- verificación de PDF/JPEG/PNG contra Fabric.
+
+El token se conserva en `sessionStorage`; la contraseña no se persiste. La UI
+usa CSP sin scripts inline, bloqueo de frames y render seguro de datos
+dinámicos.
 
 Operaciones habituales:
 
@@ -102,6 +126,7 @@ POST   /api/v1/events/{event_id}/reject
 POST   /api/v1/events/{event_id}/documents
 GET    /api/v1/documents/{document_id}
 POST   /api/v1/documents/verify
+GET    /api/v1/ledger/operations
 GET    /health
 GET    /ready
 ```
@@ -130,8 +155,9 @@ Comprobada y desplegada el 14 de agosto de 2026:
 | MinIO | RELEASE.2025-07-23T15-54-02Z |
 
 La última aceptación en vivo confirmó los bloques 21 a 24, verificó el PDF
-original y rechazó una copia modificada. Pasaron 13/13 pruebas Python, 2/2 del
-chaincode y 2/2 del gateway.
+original y rechazó una copia modificada. Pasaron 15/15 pruebas Python, 2/2 del
+chaincode y 2/2 del gateway. El 14 de agosto de 2026, `pip-audit` y ambos
+`npm audit --omit=dev` informaron cero vulnerabilidades conocidas.
 
 Fuentes de Fabric: [instalación y versiones](https://hyperledger-fabric.readthedocs.io/en/latest/install.html),
 [notas de Fabric 2.5 LTS](https://hyperledger-fabric.readthedocs.io/en/release-2.5/whatsnew.html),
@@ -143,7 +169,7 @@ y [API de Gateway](https://hyperledger.github.io/fabric-gateway/main/api/node/in
 - La topología Fabric deriva de la red educativa oficial `test-network`,
   ejecutada en un único host con tres organizaciones. No es infraestructura
   productiva.
-- Todavía no existen interfaz web, telemetría MQTT, dashboards, CI/CD, OIDC,
+- Todavía no existen telemetría MQTT, dashboards, despliegue continuo, OIDC,
   TLS de ingreso, alta disponibilidad, HSM ni recuperación externa.
 - Se admite un documento primario por evento de mantenimiento.
 - Los JWT no pueden revocarse antes de vencer y el login no tiene rate limit.
@@ -158,4 +184,5 @@ y [API de Gateway](https://hyperledger.github.io/fabric-gateway/main/api/node/in
 Esta es una plataforma de laboratorio. No controla equipos de campo, no tiene
 criptomoneda, token ni minería, no registra documentos completos ni telemetría
 cruda en el ledger, no guarda secretos en Git y no publica rutas externas de
-manera predeterminada.
+manera predeterminada. Consultar [SECURITY.md](SECURITY.md) antes de exponer o
+adaptar el sistema.

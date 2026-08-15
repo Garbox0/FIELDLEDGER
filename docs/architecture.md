@@ -21,7 +21,8 @@ un solo escritor confiable, podrían bastar controles de auditoría en PostgreSQ
 
 ```mermaid
 flowchart TB
-    Operadora & Contratista & Auditor --> API[API FastAPI]
+    Operadora & Contratista & Auditor --> UI[Interfaz web]
+    UI --> API[API FastAPI]
     API --> P[(PostgreSQL)]
     API --> M[(MinIO)]
     API --> O[(ledger_outbox)]
@@ -44,6 +45,10 @@ flowchart TB
 El gateway es un proceso TypeScript pequeño. Administra el SDK y los
 certificados de Fabric; FastAPI administra autenticación, validación, workflow
 y autorización de la aplicación.
+
+La interfaz web es HTML/CSS/JavaScript nativo servido por FastAPI. Comparte
+origen con la API, no necesita CORS, build, contenedor o puerto propio y respeta
+los mismos permisos de backend.
 
 ## Ubicación de los datos
 
@@ -142,7 +147,8 @@ en la base de datos.
 
 ```mermaid
 flowchart LR
-    Loop[127.0.0.1:8095] --> API
+    Loop[127.0.0.1:8095/app] --> UI
+    UI --> API
 
     subgraph Backend[fieldledger_backend-net]
       API --> Gateway
@@ -193,11 +199,13 @@ advierte por debajo de 15 GiB. No se permite borrado automático por retención.
    Alembic, CRUD de activos, JWT/RBAC, documentos y backups.
 2. **Backend ledger — completo:** red Fabric de tres organizaciones, chaincode,
    gateway privado, outbox/worker, reconciliación y verificación real.
-3. **Experiencia web — próxima:** login, activos, workflow, evidencia, estado
-   del ledger e interfaz de verificación.
-4. **Telemetría:** Mosquitto, simulador, worker, lecturas, lotes canónicos y
-   anclajes selectivos en Fabric.
-5. **Observabilidad/DevOps:** métricas, dashboards, alertas, CI y scanning.
+3. **Experiencia web MVP — implementada:** login, activos, workflow, evidencia,
+   estado del ledger y verificación. Falta la aceptación visual manual y
+   material de demostración.
+4. **Telemetría — próxima después de aceptar la UI:** Mosquitto, simulador,
+   worker, lecturas, lotes canónicos y anclajes selectivos en Fabric.
+5. **DevOps básico — parcial:** CI de API, chaincode, gateway y auditoría de
+   dependencias implementada. Faltan métricas, dashboards, alertas y CD.
 6. **Endurecimiento empresarial:** infraestructura independiente, ciclo de
    vida CA/HSM, OIDC, TLS, rate limits, HA, DR, gobierno y revisión de seguridad.
 7. **Edge:** gateway Raspberry y buffering offline donde el campo lo requiera.

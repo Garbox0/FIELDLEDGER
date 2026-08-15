@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  api:
+    name: API · Python
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: apps/api/requirements.txt
+      - run: python -m pip install -r requirements.txt pip-audit
+      - run: python -m pytest -q -p no:cacheprovider
+      - run: pip-audit -r requirements.txt
+
+  node:
+    name: Node · ${{ matrix.name }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Chaincode
+            path: blockchain/chaincode/fieldledger
+          - name: Gateway
+            path: services/fabric-gateway
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: ${{ matrix.path }}/package-lock.json
+      - run: npm ci
+        working-directory: ${{ matrix.path }}
+      - run: npm test
+        working-directory: ${{ matrix.path }}
+      - run: npm audit --omit=dev --audit-level=high
+        working-directory: ${{ matrix.path }}

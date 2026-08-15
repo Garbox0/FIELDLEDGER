@@ -153,3 +153,19 @@ class DocumentVerification(BaseModel):
     sha256_hash: str
     reason: str | None = None
     document: dict[str, object] | None = None
+
+
+class LedgerOperationRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    operation_id: str
+    aggregate_type: str
+    aggregate_id: str
+    action: str
+    organization: str
+    status: LedgerStatus
+    attempts: int
+    ledger_tx_id: str | None
+    block_number: str | None
+    created_at: datetime
+    updated_at: datetime

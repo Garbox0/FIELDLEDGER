@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="FieldLedger: integridad de activos y mantenimiento verificable.">
+  <title>FieldLedger · Integridad operacional</title>
+  <link rel="stylesheet" href="/app/styles.css">
+  <script src="/app/app.js" defer></script>
+</head>
+<body>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <main id="login-view" class="login-layout">
+    <section class="login-story" aria-labelledby="login-title">
+      <a class="brand brand-light" href="/app/" aria-label="FieldLedger, inicio">
+        <span class="brand-mark" aria-hidden="true">FL</span>
+        <span>FIELDLEDGER</span>
+      </a>
+      <div class="story-copy">
+        <p class="eyebrow eyebrow-light">INTEGRIDAD DE ACTIVOS · OIL &amp; GAS</p>
+        <h1 id="login-title">Evidencia operacional que ninguna parte puede reescribir sola.</h1>
+        <p>Operadora, contratista y auditor trabajan sobre un mismo flujo, con documentos privados y hechos críticos confirmados en Hyperledger Fabric.</p>
+      </div>
+      <div class="trust-strip" aria-label="Características del sistema">
+        <span>3 organizaciones</span>
+        <span>SHA-256</span>
+        <span>Ledger real</span>
+      </div>
+    </section>
+
+    <section class="login-panel" aria-labelledby="access-title">
+      <form id="login-form" class="login-card">
+        <p class="eyebrow">ACCESO AL LABORATORIO</p>
+        <h2 id="access-title">Ingresar a FieldLedger</h2>
+        <p class="muted">Usá una identidad habilitada. La contraseña no se guarda en el navegador.</p>
+
+        <label for="username">Usuario</label>
+        <input id="username" name="username" autocomplete="username" maxlength="64" required placeholder="operator">
+
+        <label for="password">Contraseña</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" maxlength="128" required placeholder="••••••••••••">
+
+        <button class="button button-primary button-wide" type="submit">
+          <span>Ingresar</span><span aria-hidden="true">→</span>
+        </button>
+        <p id="login-error" class="form-error" role="alert"></p>
+
+        <div class="role-note">
+          <strong>Flujo por roles</strong>
+          <span>Operadora crea y aprueba · Contratista propone · Auditor verifica</span>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <div id="app-view" class="app-layout" hidden>
+    <aside class="sidebar">
+      <a class="brand" href="/app/" aria-label="FieldLedger, inicio">
+        <span class="brand-mark" aria-hidden="true">FL</span>
+        <span>FIELDLEDGER</span>
+      </a>
+      <nav class="sidebar-nav" aria-label="Secciones">
+        <a class="nav-link active" href="#overview"><span aria-hidden="true">01</span>Resumen</a>
+        <a class="nav-link" href="#assets"><span aria-hidden="true">02</span>Activos</a>
+        <a class="nav-link" href="#maintenance"><span aria-hidden="true">03</span>Mantenimiento</a>
+        <a class="nav-link" href="#ledger"><span aria-hidden="true">04</span>Ledger</a>
+        <a class="nav-link" href="#verify"><span aria-hidden="true">05</span>Verificar</a>
+      </nav>
+      <div class="sidebar-foot">
+        <span class="pulse-dot" aria-hidden="true"></span>
+        <div><strong>Laboratorio activo</strong><small>Raspberry Pi · Fabric 2.5</small></div>
+      </div>
+    </aside>
+
+    <main class="workspace">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">CONSOLA DE INTEGRIDAD</p>
+          <p id="current-context" class="context-title">Resumen operacional</p>
+        </div>
+        <div class="user-menu">
+          <div class="user-copy"><strong id="user-name">—</strong><span id="user-organization">—</span></div>
+          <span id="user-role" class="badge badge-role">—</span>
+          <button id="refresh-button" class="icon-button" type="button" aria-label="Actualizar datos" title="Actualizar">↻</button>
+          <button id="logout-button" class="button button-ghost" type="button">Cambiar usuario</button>
+        </div>
+      </header>
+
+      <div class="content">
+        <section id="overview" class="hero-section">
+          <div>
+            <p class="eyebrow">TRAZABILIDAD ENTRE ORGANIZACIONES</p>
+            <h1>Integridad operacional,<br><span>verificable.</span></h1>
+            <p class="hero-description">Los datos de trabajo permanecen ágiles. La evidencia crítica obtiene una huella compartida, un transaction ID y un bloque real.</p>
+          </div>
+          <div class="hero-actions">
+            <button id="hero-primary" class="button button-primary" type="button">Registrar activo</button>
+            <a class="button button-secondary" href="#ledger">Ver actividad del ledger</a>
+          </div>
+        </section>
+
+        <section class="stats-grid" aria-label="Indicadores">
+          <article class="stat-card"><span>Activos registrados</span><strong id="asset-count">—</strong><small>fuente operacional</small></article>
+          <article class="stat-card"><span>Eventos visibles</span><strong id="event-count">—</strong><small>activo seleccionado</small></article>
+          <article class="stat-card"><span>Commits Fabric</span><strong id="commit-count">—</strong><small>últimas 50 operaciones</small></article>
+          <article class="stat-card stat-health"><span>Estado integral</span><strong id="health-status">Consultando</strong><small>API · datos · ledger</small></article>
+        </section>
+
+        <section id="assets" class="section-block">
+          <div class="section-heading">
+            <div><p class="eyebrow">REGISTRO OPERACIONAL</p><h2>Activos</h2></div>
+            <button id="create-asset-button" class="button button-primary" type="button">+ Nuevo activo</button>
+          </div>
+          <div class="asset-grid">
+            <div class="panel asset-list-panel">
+              <div class="panel-toolbar">
+                <label class="search-box" for="asset-search"><span aria-hidden="true">⌕</span><input id="asset-search" type="search" placeholder="Buscar activo o sitio"></label>
+                <span id="asset-list-count" class="count-label">0 activos</span>
+              </div>
+              <div id="asset-list" class="asset-list" aria-live="polite"></div>
+            </div>
+
+            <article id="asset-detail" class="panel asset-detail empty-state">
+              <div class="empty-mark" aria-hidden="true">FL</div>
+              <h3>Seleccioná un activo</h3>
+              <p>Vas a ver sus datos, mantenimiento y estado de confirmación.</p>
+            </article>
+          </div>
+        </section>
+
+        <section id="maintenance" class="section-block">
+          <div class="section-heading">
+            <div><p class="eyebrow">WORKFLOW CONTROLADO</p><h2>Mantenimiento</h2></div>
+            <button id="propose-button" class="button button-secondary" type="button">Proponer mantenimiento</button>
+          </div>
+          <div class="panel table-panel">
+            <div class="table-scroll">
+              <table>
+                <thead><tr><th>Evento</th><th>Tipo</th><th>Responsable</th><th>Decisión</th><th>Ledger</th><th>Acciones</th></tr></thead>
+                <tbody id="event-table"></tbody>
+              </table>
+            </div>
+            <div id="event-empty" class="table-empty">Seleccioná un activo para consultar su mantenimiento.</div>
+          </div>
+        </section>
+
+        <section id="ledger" class="section-block">
+          <div class="section-heading">
+            <div><p class="eyebrow">EVIDENCIA COMPARTIDA</p><h2>Actividad del ledger</h2></div>
+            <div class="legend"><span><i class="status-dot committed"></i> Confirmado</span><span><i class="status-dot pending"></i> En proceso</span></div>
+          </div>
+          <div class="panel table-panel">
+            <div class="table-scroll">
+              <table>
+                <thead><tr><th>Operación</th><th>Organización</th><th>Estado</th><th>Transaction ID</th><th>Bloque</th></tr></thead>
+                <tbody id="ledger-table"></tbody>
+              </table>
+            </div>
+            <div id="ledger-empty" class="table-empty">Todavía no hay operaciones para mostrar.</div>
+          </div>
+        </section>
+
+        <section id="verify" class="section-block verification-grid">
+          <div class="verification-copy">
+            <p class="eyebrow">PRUEBA DE INTEGRIDAD</p>
+            <h2>Verificar evidencia</h2>
+            <p>Subí una copia PDF, JPEG o PNG. FieldLedger recalcula su SHA-256 y consulta Fabric: el archivo nunca se incorpora al ledger.</p>
+            <ul class="check-list"><li>Máximo 10 MiB</li><li>Consulta real a AuditorOrg</li><li>Sin fallback local</li></ul>
+          </div>
+          <form id="verify-form" class="panel upload-panel">
+            <label class="drop-zone" for="verify-file">
+              <span class="upload-icon" aria-hidden="true">↑</span>
+              <strong>Seleccionar evidencia</strong>
+              <span id="verify-file-name">PDF, JPEG o PNG</span>
+              <input id="verify-file" name="file" type="file" accept="application/pdf,image/jpeg,image/png" required>
+            </label>
+            <button class="button button-primary button-wide" type="submit">Consultar huella en Fabric</button>
+            <div id="verification-result" class="verification-result" aria-live="polite"></div>
+          </form>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <dialog id="asset-dialog">
+    <form id="asset-form" class="dialog-card">
+      <div class="dialog-heading"><div><p class="eyebrow">NUEVO REGISTRO</p><h2>Registrar activo</h2></div><button class="dialog-close" type="button" data-close="asset-dialog" aria-label="Cerrar">×</button></div>
+      <div class="form-grid">
+        <label>ID del activo<input name="asset_id" required minlength="3" maxlength="64" pattern="[A-Z0-9][A-Z0-9_-]+" placeholder="VALVE-VM-0042"></label>
+        <label>Tipo<input name="asset_type" required minlength="2" maxlength="64" pattern="[A-Z0-9_-]+" placeholder="VALVE"></label>
+        <label class="span-2">Nombre<input name="name" required minlength="2" maxlength="160" placeholder="Válvula de seguridad de boca de pozo"></label>
+        <label>Sitio<input name="site" required minlength="2" maxlength="160" placeholder="Yacimiento demostración"></label>
+        <label>Ubicación<input name="location" maxlength="160" placeholder="WELL-137"></label>
+        <label>Fabricante<input name="manufacturer" maxlength="160" placeholder="Fabricante"></label>
+        <label>Número de serie<input name="serial_number" maxlength="128" placeholder="SN-883721"></label>
+        <label>Operadora<input name="operator" maxlength="160" placeholder="OperatorOrg"></label>
+        <label>Fecha de instalación<input name="installation_date" type="date"></label>
+        <label>Estado<select name="status"><option>ACTIVE</option><option>MAINTENANCE</option><option>OUT_OF_SERVICE</option><option>DECOMMISSIONED</option></select></label>
+        <label>Criticidad<select name="criticality"><option>LOW</option><option selected>MEDIUM</option><option>HIGH</option><option>CRITICAL</option></select></label>
+      </div>
+      <p class="form-hint">El alta guarda el activo y encola su identidad compacta para Fabric en una misma transacción.</p>
+      <div class="dialog-actions"><button class="button button-ghost" type="button" data-close="asset-dialog">Cancelar</button><button class="button button-primary" type="submit">Registrar activo</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="maintenance-dialog">
+    <form id="maintenance-form" class="dialog-card">
+      <div class="dialog-heading"><div><p class="eyebrow">PROPUESTA DE CONTRATISTA</p><h2>Nuevo mantenimiento</h2></div><button class="dialog-close" type="button" data-close="maintenance-dialog" aria-label="Cerrar">×</button></div>
+      <p id="maintenance-asset-label" class="dialog-context">—</p>
+      <div class="form-grid">
+        <label>ID del evento<input name="event_id" required minlength="3" maxlength="64" pattern="[A-Z0-9][A-Z0-9_-]+"></label>
+        <label>Tipo<select name="event_type"><option value="PREVENTIVE_MAINTENANCE">Mantenimiento preventivo</option><option value="CORRECTIVE_MAINTENANCE">Mantenimiento correctivo</option><option value="PART_REPLACEMENT">Reemplazo de componente</option></select></label>
+        <label class="span-2">Descripción<textarea name="description" required minlength="3" maxlength="4000" rows="4" placeholder="Trabajo realizado, alcance y criterio de aceptación"></textarea></label>
+        <input name="idempotency_key" type="hidden">
+      </div>
+      <div class="dialog-actions"><button class="button button-ghost" type="button" data-close="maintenance-dialog">Cancelar</button><button class="button button-primary" type="submit">Enviar propuesta</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="document-dialog">
+    <form id="document-form" class="dialog-card">
+      <div class="dialog-heading"><div><p class="eyebrow">EVIDENCIA PRIVADA</p><h2>Adjuntar documento</h2></div><button class="dialog-close" type="button" data-close="document-dialog" aria-label="Cerrar">×</button></div>
+      <p id="document-event-label" class="dialog-context">—</p>
+      <label class="drop-zone" for="document-file"><span class="upload-icon" aria-hidden="true">↑</span><strong>Seleccionar archivo</strong><span id="document-file-name">PDF, JPEG o PNG · máximo 10 MiB</span><input id="document-file" name="file" type="file" accept="application/pdf,image/jpeg,image/png" required></label>
+      <p class="form-hint">El archivo queda en MinIO. Solo su SHA-256 y metadatos compactos se registran en Fabric.</p>
+      <div class="dialog-actions"><button class="button button-ghost" type="button" data-close="document-dialog">Cancelar</button><button class="button button-primary" type="submit">Guardar evidencia</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="reject-dialog">
+    <form id="reject-form" class="dialog-card dialog-small">
+      <div class="dialog-heading"><div><p class="eyebrow">REVISIÓN DE OPERADORA</p><h2>Rechazar propuesta</h2></div><button class="dialog-close" type="button" data-close="reject-dialog" aria-label="Cerrar">×</button></div>
+      <p id="reject-event-label" class="dialog-context">—</p>
+      <label>Motivo<textarea name="reason" required minlength="3" maxlength="2000" rows="4" placeholder="Indicar el motivo del rechazo"></textarea></label>
+      <div class="dialog-actions"><button class="button button-ghost" type="button" data-close="reject-dialog">Cancelar</button><button class="button button-danger" type="submit">Confirmar rechazo</button></div>
+    </form>
+  </dialog>
+</body>
+</html>
