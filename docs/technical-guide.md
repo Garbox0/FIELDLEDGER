@@ -250,6 +250,10 @@ Las pruebas unitarias fuerzan `LEDGER_ENABLED=false` para no depender de
 infraestructura externa; la prueba específica de verificación habilita un
 doble controlado. `make ledger-smoke` sigue siendo la aceptación real de Fabric.
 
+GitHub Actions ejecuta en cada PR y push a `main` las 15 pruebas Python, las
+pruebas de chaincode/gateway y las auditorías `pip-audit`/`npm audit`. El
+workflow tiene permisos de repositorio de solo lectura y no usa secretos.
+
 `make ledger-smoke` crea un activo, evento y evidencia de laboratorio con
 nombres únicos, espera los cuatro commits reales, verifica el PDF original,
 rechaza una copia modificada e imprime los IDs de transacción y bloques. Deja

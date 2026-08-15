@@ -204,7 +204,8 @@ advierte por debajo de 15 GiB. No se permite borrado automático por retención.
    material de demostración.
 4. **Telemetría — próxima después de aceptar la UI:** Mosquitto, simulador,
    worker, lecturas, lotes canónicos y anclajes selectivos en Fabric.
-5. **Observabilidad/DevOps:** métricas, dashboards, alertas, CI y scanning.
+5. **DevOps básico — parcial:** CI de API, chaincode, gateway y auditoría de
+   dependencias implementada. Faltan métricas, dashboards, alertas y CD.
 6. **Endurecimiento empresarial:** infraestructura independiente, ciclo de
    vida CA/HSM, OIDC, TLS, rate limits, HA, DR, gobierno y revisión de seguridad.
 7. **Edge:** gateway Raspberry y buffering offline donde el campo lo requiera.

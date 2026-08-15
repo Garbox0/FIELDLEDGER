@@ -86,6 +86,8 @@ y únicamente sobre loopback.
   puente del navegador integrado no estuvo disponible en esta sesión.
 - Auditorías del 2026-08-14: `pip-audit` y los dos `npm audit --omit=dev`
   informaron cero vulnerabilidades conocidas.
+- Workflow CI agregado en `.github/workflows/ci.yml`: API Python, chaincode,
+  gateway y auditorías de dependencias, con permisos de solo lectura.
 - Una repetición del bootstrap expuso y corrigió un error de detección del
   chaincode ya confirmado. El intento de aprobar nuevamente la secuencia 1
   quedó inválido en el bloque 20 (`ENDORSEMENT_POLICY_FAILURE`) y no cambió el
@@ -193,7 +195,7 @@ explícitamente backups verificados antiguos si aparece la alerta de 15 GiB.
   en un único host, no un despliegue productivo distribuido.
 - Las identidades `cryptogen` son de laboratorio; no existen CA productiva,
   HSM, rotación de certificados ni custodia independiente entre empresas.
-- No existen todavía telemetría/MQTT, Prometheus/Grafana ni pipeline CI.
+- No existen todavía telemetría/MQTT, Prometheus/Grafana ni despliegue continuo.
 - No están implementados revocación/refresh de JWT, rate limiting, TLS, OIDC,
   alta disponibilidad ni recuperación externa ante desastres.
 - Se permite un documento primario por evento de mantenimiento.

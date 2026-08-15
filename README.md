@@ -1,5 +1,7 @@
 # FieldLedger
 
+[![CI](https://github.com/Garbox0/FIELDLEDGER/actions/workflows/ci.yml/badge.svg)](https://github.com/Garbox0/FIELDLEDGER/actions/workflows/ci.yml)
+
 FieldLedger es un prototipo de integridad de activos y mantenimiento para la
 industria de Oil & Gas. Mantiene los datos operativos en PostgreSQL, los
 archivos de evidencia en MinIO y registra en Hyperledger Fabric hechos
@@ -169,8 +171,8 @@ y [API de Gateway](https://hyperledger.github.io/fabric-gateway/main/api/node/in
 - La topología Fabric deriva de la red educativa oficial `test-network`,
   ejecutada en un único host con tres organizaciones. No es infraestructura
   productiva.
-- Todavía no existen telemetría MQTT, dashboards, CI/CD, OIDC, TLS de ingreso,
-  alta disponibilidad, HSM ni recuperación externa.
+- Todavía no existen telemetría MQTT, dashboards, despliegue continuo, OIDC,
+  TLS de ingreso, alta disponibilidad, HSM ni recuperación externa.
 - Se admite un documento primario por evento de mantenimiento.
 - Los JWT no pueden revocarse antes de vencer y el login no tiene rate limit.
 - El kernel de la Pi no aplica los límites de memoria declarados por Docker.

@@ -252,7 +252,7 @@ Pendiente:
 
 - aceptación visual, capturas y video breve del flujo web;
 - telemetría MQTT y anclaje por lotes;
-- Prometheus/Grafana y CI/CD;
+- Prometheus/Grafana y despliegue continuo;
 - IAM empresarial, certificados productivos, HA y gobierno multi-host.
 
 Resumen honesto: el backend de integridad funciona end-to-end; la experiencia

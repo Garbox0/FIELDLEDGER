@@ -33,7 +33,7 @@ productivos, observabilidad, backups externos probados y revisión de seguridad.
 Las versiones están fijadas para reproducibilidad. El 14 de agosto de 2026 se
 ejecutaron `pip-audit` sobre la API y `npm audit --omit=dev` sobre chaincode y
 gateway: no informaron vulnerabilidades conocidas. Este resultado envejece;
-repetir los tres controles antes de una demo importante o actualización.
+el workflow CI repite los tres controles en cada PR y push a `main`.
 
 ## Si un secreto se filtra
 
