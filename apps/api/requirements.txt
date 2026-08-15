@@ -1,0 +1,12 @@
+alembic==1.19.1
+fastapi==0.141.1
+httpx==0.28.1
+minio==7.2.20
+psycopg[binary]==3.3.4
+pwdlib[argon2]==0.3.0
+pydantic==2.13.4
+PyJWT==2.13.0
+pytest==9.1.1
+python-multipart==0.0.32
+SQLAlchemy==2.0.52
+uvicorn==0.52.3

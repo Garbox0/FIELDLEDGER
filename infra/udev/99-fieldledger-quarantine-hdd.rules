@@ -1,0 +1,4 @@
+# The failed ST500LT012 / USB bridge is physically attached at port 2-2.
+# Keep it unauthorized so probing cannot hang the host. Remove this rule after
+# physically replacing or disconnecting the device, then reload udev rules.
+ACTION=="add", SUBSYSTEM=="usb", KERNEL=="2-2", ATTR{authorized}="0"

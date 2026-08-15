@@ -1,0 +1,15 @@
+.env
+.pytest_cache/
+__pycache__/
+*.py[cod]
+.coverage
+htmlcov/
+.venv/
+node_modules/
+dist/
+.runtime/
+.local/
+backups/*
+!backups/.gitkeep
+.idea/
+.vscode/

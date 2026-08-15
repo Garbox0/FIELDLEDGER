@@ -1,0 +1,46 @@
+name: fieldledger-gateway
+
+services:
+  gateway:
+    build: .
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      INTERNAL_GATEWAY_TOKEN: ${INTERNAL_GATEWAY_TOKEN:?Set INTERNAL_GATEWAY_TOKEN}
+      FABRIC_CRYPTO_ROOT: /fabric/organizations
+      FABRIC_CHANNEL: fieldledgerchannel
+      FABRIC_CHAINCODE: fieldledger
+      FABRIC_PEER_ENDPOINT: peer0.org1.example.com:7051
+      FABRIC_PEER_HOST_ALIAS: peer0.org1.example.com
+    volumes:
+      - ../../.runtime/fabric-samples/test-network/organizations:/fabric/organizations:ro
+    expose:
+      - "3000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/ready').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 30s
+    mem_limit: 256m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - app
+      - fabric
+
+networks:
+  app:
+    external: true
+    name: fieldledger_backend-net
+  fabric:
+    external: true
+    name: fabric_test

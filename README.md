@@ -1,0 +1,161 @@
+# FieldLedger
+
+FieldLedger es un prototipo de integridad de activos y mantenimiento para la
+industria de Oil & Gas. Mantiene los datos operativos en PostgreSQL, los
+archivos de evidencia en MinIO y registra en Hyperledger Fabric hechos
+compactos que deben poder auditarse entre distintas organizaciones.
+
+El hito actual, desplegado en una Raspberry Pi, incluye una red Fabric real de
+tres organizaciones, chaincode, gateway privado, outbox transaccional y
+verificación documental respaldada por el ledger. El sistema en ejecución no
+simula la blockchain.
+
+## Qué demuestra el proyecto
+
+- Modelado de un flujo real entre operadora, contratista y auditor.
+- Uso selectivo de blockchain donde existe una brecha de confianza entre
+  organizaciones, sin convertirla en una base de datos generalista.
+- Entrega confiable desde PostgreSQL hacia Fabric mediante una outbox
+  transaccional, reintentos e idempotencia.
+- Integridad documental mediante SHA-256 sin publicar documentos privados en
+  la cadena.
+- Criterio operativo sobre seguridad, capacidad, backups y límites de una
+  plataforma edge de recursos acotados.
+
+Puede presentarse como un prototipo funcional de portfolio o como base para un
+piloto controlado. No debe describirse como una plataforma lista para
+producción.
+
+## Arquitectura
+
+```mermaid
+flowchart LR
+    Usuarios[Operadora / Contratista / Auditor] --> API[FastAPI]
+    API --> DB[(PostgreSQL)]
+    API --> Archivos[(MinIO)]
+    API --> Outbox[(Outbox del ledger)]
+    Outbox --> Worker[Worker con reintentos]
+    Worker --> Gateway[Fabric Gateway privado]
+    Gateway --> O[Peer Org1 Operadora]
+    Gateway --> C[Peer Org2 Contratista]
+    Gateway -. consulta .-> A[Membresía Org3 Auditor]
+    O & C & A --> Orderer[Canal/orderer de Fabric]
+```
+
+Los bytes de los documentos nunca ingresan a Fabric. Solo se registran su
+huella SHA-256 y metadatos compactos. Cada escritura requiere el aval de los
+peers de la operadora y la contratista.
+
+Consultar [PROJECT_STATE.md](PROJECT_STATE.md) para el relevo exacto,
+[docs/technical-guide.md](docs/technical-guide.md) para la operación y
+[docs/non-technical-guide.md](docs/non-technical-guide.md) para explicar el
+proyecto a perfiles no técnicos.
+
+## Puesta en marcha
+
+Requisitos: Linux ARM64, Docker Engine con Compose v2, Make, Bash, Git, curl,
+Python 3, jq, tar y OpenSSL.
+
+```bash
+make bootstrap
+make ledger-up
+make seed
+make ledger-status
+curl -fsS http://127.0.0.1:8095/ready
+```
+
+La API y la interfaz OpenAPI se vinculan únicamente a loopback en
+`http://127.0.0.1:8095` y `/docs`. PostgreSQL, MinIO y Fabric Gateway no
+publican puertos en el host.
+
+Operaciones habituales:
+
+```bash
+make test             # ejecutar pruebas de la API Python
+make migrate          # aplicar migraciones de Alembic
+make ledger-reconcile # encolar registros creados antes de Fabric
+make ledger-smoke     # commit real y verificación original/modificado
+make ledger-status    # contenedores y estados de la outbox
+make backup           # backup SHA-256 reservando 10 GiB de la SD
+make storage-status   # uso de SD, backups, runtime de Fabric y Docker
+make logs
+```
+
+`make bootstrap` genera secretos en un `.env` con permisos 600 y nunca
+sobrescribe valores existentes. `.runtime` contiene identidades y material
+generado de Fabric, y está excluido de Git.
+
+## Superficie de la API
+
+```text
+POST   /api/v1/auth/login
+GET    /api/v1/auth/me
+POST   /api/v1/assets
+GET    /api/v1/assets[/{asset_id}]
+PATCH  /api/v1/assets/{asset_id}
+DELETE /api/v1/assets/{asset_id}
+POST   /api/v1/assets/{asset_id}/maintenance
+GET    /api/v1/assets/{asset_id}/events
+GET    /api/v1/events/{event_id}
+POST   /api/v1/events/{event_id}/approve
+POST   /api/v1/events/{event_id}/reject
+POST   /api/v1/events/{event_id}/documents
+GET    /api/v1/documents/{document_id}
+POST   /api/v1/documents/verify
+GET    /health
+GET    /ready
+```
+
+El endpoint de verificación calcula el SHA-256 del archivo recibido y consulta
+Fabric. Solo devuelve éxito cuando existe una coincidencia exacta en el
+ledger. Si Fabric no está disponible, responde HTTP 502; no existe un fallback
+local que simule éxito.
+
+## Línea base verificada
+
+Comprobada y desplegada el 14 de agosto de 2026:
+
+| Componente | Versión |
+|---|---:|
+| Hyperledger Fabric | 2.5.16 LTS |
+| Fabric Gateway Node SDK | 1.12.0 |
+| Fabric chaincode API/shim | 2.5.8 |
+| Imagen Node.js | 24.18.0-bookworm-slim |
+| TypeScript | 7.0.2 |
+| Imagen Python | 3.13.14-slim-bookworm |
+| FastAPI | 0.141.1 |
+| SQLAlchemy | 2.0.52 |
+| Alembic | 1.19.1 |
+| PostgreSQL | 18.4-bookworm |
+| MinIO | RELEASE.2025-07-23T15-54-02Z |
+
+La última aceptación en vivo confirmó los bloques 21 a 24, verificó el PDF
+original y rechazó una copia modificada. Pasaron 13/13 pruebas Python, 2/2 del
+chaincode y 2/2 del gateway.
+
+Fuentes de Fabric: [instalación y versiones](https://hyperledger-fabric.readthedocs.io/en/latest/install.html),
+[notas de Fabric 2.5 LTS](https://hyperledger-fabric.readthedocs.io/en/release-2.5/whatsnew.html),
+[documentación de test-network](https://hyperledger-fabric.readthedocs.io/en/release-2.5/test_network.html)
+y [API de Gateway](https://hyperledger.github.io/fabric-gateway/main/api/node/interfaces/Contract.html).
+
+## Limitaciones declaradas
+
+- La topología Fabric deriva de la red educativa oficial `test-network`,
+  ejecutada en un único host con tres organizaciones. No es infraestructura
+  productiva.
+- Todavía no existen interfaz web, telemetría MQTT, dashboards, CI/CD, OIDC,
+  TLS de ingreso, alta disponibilidad, HSM ni recuperación externa.
+- Se admite un documento primario por evento de mantenimiento.
+- Los JWT no pueden revocarse antes de vencer y el login no tiene rate limit.
+- El kernel de la Pi no aplica los límites de memoria declarados por Docker.
+- El HDD conectado fue descartado: las escrituras sobre una región legible
+  provocaron reinicios USB. Está desvinculado y en cuarentena por puerto hasta
+  su reemplazo físico. Los datos permanecen en la SD; los backups reservan
+  10 GiB y `make storage-status` advierte por debajo de 15 GiB.
+
+## Límite de seguridad
+
+Esta es una plataforma de laboratorio. No controla equipos de campo, no tiene
+criptomoneda, token ni minería, no registra documentos completos ni telemetría
+cruda en el ledger, no guarda secretos en Git y no publica rutas externas de
+manera predeterminada.
