@@ -21,7 +21,7 @@ const roles = {
   review: new Set(["ADMIN", "OPERATOR"]),
   upload: new Set(["ADMIN", "OPERATOR", "CONTRACTOR", "AUDITOR"]),
   verify: new Set(["ADMIN", "OPERATOR", "AUDITOR"]),
-  telemetry: new Set(["ADMIN", "OPERATOR"]),
+  telemetry: new Set(["ADMIN", "OPERATOR", "CONTRACTOR", "AUDITOR", "VIEWER"]),
 };
 
 const labels = {
@@ -536,7 +536,10 @@ function renderTelemetry() {
 }
 
 async function simulateTelemetry() {
-  if (!state.selectedAsset) return showToast("Seleccioná un activo primero.", true);
+  if (!state.selectedAsset && state.assets.length > 0) {
+    await selectAsset(state.assets[0]);
+  }
+  if (!state.selectedAsset) return showToast("No hay activos disponibles para simular.", true);
   const btn = $("#simulate-telemetry-btn");
   setBusy(btn, true, "Generando lecturas…");
   try {
@@ -551,7 +554,10 @@ async function simulateTelemetry() {
 }
 
 async function anchorTelemetryBatch() {
-  if (!state.selectedAsset) return showToast("Seleccioná un activo primero.", true);
+  if (!state.selectedAsset && state.assets.length > 0) {
+    await selectAsset(state.assets[0]);
+  }
+  if (!state.selectedAsset) return showToast("No hay activos disponibles para anclar.", true);
   const btn = $("#anchor-batch-btn");
   setBusy(btn, true, "Calculando Merkle Root…");
   try {

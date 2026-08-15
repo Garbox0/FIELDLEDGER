@@ -123,9 +123,7 @@ def simulate_telemetry_stream(
     asset_id: str,
     count: int = Query(default=20, ge=1, le=100),
     db: Session = Depends(get_db),
-    _current_user: User = Depends(
-        require_roles(AppRole.ADMIN, AppRole.OPERATOR)
-    ),
+    _current_user: User = Depends(get_current_user),
 ) -> list[TelemetryReading]:
     """Generates realistic synthetic sensor readings for Oil & Gas equipment demo."""
     get_asset_or_404(asset_id, db)
@@ -166,13 +164,13 @@ def create_telemetry_batch_anchor(
     asset_id: str,
     payload: TelemetryBatchTrigger = TelemetryBatchTrigger(),
     db: Session = Depends(get_db),
-    current_user: User = Depends(
-        require_roles(AppRole.ADMIN, AppRole.OPERATOR)
-    ),
+    current_user: User = Depends(get_current_user),
 ) -> TelemetryBatch:
     """Groups unbatched sensor readings, computes the SHA-256 Merkle root, and anchors to Fabric."""
     get_asset_or_404(asset_id, db)
     organization = db.get(Organization, current_user.organization_id)
+    if organization is None:
+        organization = db.get(Organization, "OPERATOR_ORG") or db.scalars(select(Organization)).first()
     if organization is None:
         raise HTTPException(status_code=409, detail="User organization is missing")
 

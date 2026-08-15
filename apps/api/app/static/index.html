@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="FieldLedger: integridad de activos, mantenimiento y telemetría verificable en Oil &amp; Gas.">
   <title>FieldLedger · Integridad Operacional &amp; Blockchain en Oil &amp; Gas</title>
-  <link rel="stylesheet" href="/app/styles.css?v=20260815.2">
-  <script src="/app/app.js?v=20260815.2" defer></script>
+  <link rel="stylesheet" href="/app/styles.css?v=20260815.3">
+  <script src="/app/app.js?v=20260815.3" defer></script>
 </head>
 <body>
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
@@ -14,8 +14,9 @@
   <main id="login-view" class="login-layout">
     <section class="login-story" aria-labelledby="login-title">
       <a class="brand brand-light" href="/app/" aria-label="FieldLedger, inicio">
-        <span class="brand-mark" aria-hidden="true">FL</span>
-        <span>FIELDLEDGER</span>
+        <div class="brand-badge-light">
+          <img src="/app/fieldledger-logo.png?v=20260815.3" alt="FieldLedger" class="brand-logo-img">
+        </div>
       </a>
       <div class="story-copy">
         <p class="eyebrow eyebrow-light">INTEGRIDAD DE ACTIVOS &amp; TRAZABILIDAD · OIL &amp; GAS</p>
@@ -61,8 +62,7 @@
   <div id="app-view" class="app-layout" hidden>
     <aside class="sidebar">
       <a class="brand" href="/app/" aria-label="FieldLedger, inicio">
-        <span class="brand-mark" aria-hidden="true">FL</span>
-        <span>FIELDLEDGER</span>
+        <img src="/app/fieldledger-logo.png?v=20260815.3" alt="FieldLedger" class="brand-logo-img">
       </a>
       <nav class="sidebar-nav" aria-label="Secciones">
         <a class="nav-link active" href="#overview"><span aria-hidden="true">01</span>Resumen</a>
@@ -95,15 +95,15 @@
       <div class="content">
         <!-- 01 RESUMEN -->
         <section id="overview" class="hero-section">
-          <div>
+          <div class="hero-copy-wrap">
             <p class="eyebrow">TRAZABILIDAD INTEGRAL ENTRE ORGANIZACIONES</p>
             <h1>Integridad de activos,<br><span>certificada en Ledger.</span></h1>
             <p class="hero-description">PostgreSQL mantiene los datos ágiles y MinIO custodia los archivos privados. Cada hito de mantenimiento, lote de telemetría y evidencia técnica obtiene una huella criptográfica SHA-256 con bloque y transacción real en Fabric.</p>
-          </div>
-          <div class="hero-actions">
-            <button id="hero-primary" class="button button-primary" type="button">Registrar activo</button>
-            <a class="button button-secondary" href="#telemetry">Ver telemetría de sensores</a>
-            <a class="button button-secondary" href="#ledger">Ver actividad del ledger</a>
+            <div class="hero-actions">
+              <button id="hero-primary" class="button button-primary" type="button">Registrar activo</button>
+              <a class="button button-secondary" href="#telemetry">Ver telemetría de sensores</a>
+              <a class="button button-secondary" href="#ledger">Ver actividad del ledger</a>
+            </div>
           </div>
         </section>
 

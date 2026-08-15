@@ -48,8 +48,26 @@ a { color: inherit; text-decoration: none; }
   font-size: .82rem;
   font-weight: 900;
   letter-spacing: .14em;
+  text-decoration: none;
 }
 .brand-light { color: #f7f6ef; }
+.brand-logo-img {
+  height: 2.35rem;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+.brand-badge-light {
+  display: inline-flex;
+  align-items: center;
+  background: white;
+  padding: .4rem .75rem;
+  border-radius: .35rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .18);
+}
+.brand-badge-light .brand-logo-img {
+  height: 2.1rem;
+}
 .brand-mark {
   display: grid;
   width: 2.5rem;
@@ -197,11 +215,12 @@ input::placeholder, textarea::placeholder { color: #9aa5a1; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .content { max-width: 96rem; margin: 0 auto; padding: 0 clamp(1.2rem, 3.5vw, 3.5rem) 5rem; }
-.hero-section { display: flex; min-height: 26rem; align-items: end; justify-content: space-between; gap: 2rem; border-bottom: 1px solid var(--line-dark); padding: 5rem 0 3.5rem; }
-.hero-section h1 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: clamp(3rem, 6vw, 6.3rem); font-weight: 500; letter-spacing: -.06em; line-height: .88; }
+.hero-section { border-bottom: 1px solid var(--line-dark); padding: 4.5rem 0 3.5rem; }
+.hero-copy-wrap { max-width: 60rem; }
+.hero-section h1 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: clamp(3rem, 6vw, 5.8rem); font-weight: 500; letter-spacing: -.055em; line-height: .92; }
 .hero-section h1 span { color: var(--green); }
-.hero-description { max-width: 43rem; margin: 1.8rem 0 0; color: var(--ink-soft); line-height: 1.65; }
-.hero-actions { display: flex; flex-wrap: wrap; gap: .6rem; padding-bottom: .35rem; }
+.hero-description { max-width: 48rem; margin: 1.8rem 0 0; color: var(--ink-soft); line-height: 1.65; font-size: .95rem; }
+.hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .8rem; margin-top: 2rem; }
 
 .stats-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-bottom: 1px solid var(--line-dark); }
 .stats-grid > .stat-card { display: grid; min-height: 10.5rem; align-content: center; border-right: 1px solid var(--line); padding: 1.5rem 1.8rem; }
