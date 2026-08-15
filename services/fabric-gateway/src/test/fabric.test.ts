@@ -6,6 +6,14 @@ test("exposes only the three consortium organizations", () => {
   assert.deepEqual(Object.keys(ORGANIZATIONS), ["OperatorOrg", "ContractorOrg", "AuditorOrg"]);
 });
 
-test("whitelists the four ledger mutations", () => {
-  assert.deepEqual(Object.keys(ACTIONS), ["REGISTER_ASSET", "PROPOSE_EVENT", "REVIEW_EVENT", "REGISTER_DOCUMENT"]);
+test("whitelists the six ledger mutations", () => {
+  assert.deepEqual(Object.keys(ACTIONS), [
+    "REGISTER_ASSET",
+    "PROPOSE_EVENT",
+    "REVIEW_EVENT",
+    "REGISTER_DOCUMENT",
+    "DECOMMISSION_ASSET",
+    "REGISTER_TELEMETRY_BATCH",
+  ]);
 });
+
