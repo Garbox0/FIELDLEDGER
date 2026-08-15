@@ -1,6 +1,6 @@
 # Estado del proyecto FieldLedger
 
-Última verificación: 15 de agosto de 2026, 00:14 ART / 03:14 UTC.
+Última verificación: 15 de agosto de 2026, 00:41 ART / 03:41 UTC.
 
 Este es el punto de entrada para el relevo por parte de una futura IA o de un
 ingeniero. Debe actualizarse después de cada checkpoint. Nunca colocar aquí
@@ -85,7 +85,8 @@ y únicamente sobre loopback.
 - Los healthchecks de API y gateway quedaron saludables después de la prueba.
 - La UI desplegada respondió HTTP 200 con CSP y `X-Frame-Options: DENY`; login
   real y `GET /api/v1/ledger/operations` devolvieron correctamente las 16
-  operaciones. La inspección visual automatizada quedó pendiente porque el
+  operaciones. El propietario revisó la interfaz por túnel SSH y aprobó su
+  apariencia inicial. La inspección automatizada quedó pendiente porque el
   puente del navegador integrado no estuvo disponible en esta sesión.
 - Auditorías del 2026-08-14: `pip-audit` y los dos `npm audit --omit=dev`
   informaron cero vulnerabilidades conocidas.
@@ -95,6 +96,8 @@ y únicamente sobre loopback.
   GitGuardian también aprobado. El primer run reveló que el entrypoint `pytest`
   no agregaba el working directory al path en GitHub; commit `d5b3275` lo
   corrigió usando `python -m pytest`. Las 15 pruebas pasaron en CI.
+- GitHub Actions run `31861816402`: las tres tareas de CI y GitGuardian
+  aprobaron el commit final de documentación antes del merge.
 - Una repetición del bootstrap expuso y corrigió un error de detección del
   chaincode ya confirmado. El intento de aprobar nuevamente la secuencia 1
   quedó inválido en el bloque 20 (`ENDORSEMENT_POLICY_FAILURE`) y no cambió el
@@ -146,11 +149,9 @@ FastAPI/Starlette de `httpx` a `httpx2`; no es una falla.
 - Límites y decisiones: `docs/architecture.md`, `docs/adr/`.
 
 El workspace de Windows es `D:\Proyectos\OilLedger`. El repositorio remoto es
-`Garbox0/FIELDLEDGER`. La interfaz está en `agent/interfaz-web`: implementación
-`a07c898`, corrección CI `d5b3275` y PR borrador `#1`. `main` conserva el
-checkpoint inicial hasta la aceptación visual y el merge. Los archivos de la
-interfaz ya están desplegados en la Pi. Preservar el trabajo del usuario: no
-usar reset destructivo ni reescribir historia.
+`Garbox0/FIELDLEDGER`. La interfaz se desarrolló en `agent/interfaz-web` y quedó
+registrada en el PR `#1`. Los archivos ya están desplegados en la Pi. Preservar
+el trabajo del usuario: no usar reset destructivo ni reescribir historia.
 
 ## Secretos e identidades
 
@@ -216,11 +217,11 @@ explícitamente backups verificados antiguos si aparece la alerta de 15 GiB.
 
 ## Próximo paso exacto
 
-Realizar una aceptación visual manual de la UI a través de túnel SSH y ejecutar
-el relato completo cambiando entre operadora, contratista y auditor: alta,
-propuesta, evidencia, aprobación, commit y verificación original/modificada.
-Capturar luego dos o tres imágenes sin datos sensibles para el README/portfolio.
-Corregir cualquier detalle visual encontrado antes de comenzar telemetría.
+Ejecutar manualmente el flujo completo cambiando entre operadora, contratista y
+auditor: alta, propuesta, evidencia, aprobación, commit y verificación
+original/modificada. La apariencia inicial ya fue aprobada. Capturar luego dos
+o tres imágenes sin datos sensibles para el README/portfolio y corregir los
+detalles que aparezcan antes de comenzar telemetría.
 
 ## Comandos para el relevo
 
