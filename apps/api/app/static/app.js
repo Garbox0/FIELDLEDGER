@@ -29,6 +29,7 @@ const labels = {
 
 const errors = {
   "Could not validate credentials": "Usuario o contraseña incorrectos.",
+  "Too many login attempts": "Demasiados intentos. Esperá un minuto y volvé a probar.",
   "Role is not allowed to perform this action": "Tu rol no permite realizar esta acción.",
   "Asset already exists": "Ya existe un activo con ese ID.",
   "Event or idempotency key already exists": "El evento ya existe. Generá una nueva propuesta.",
@@ -137,6 +138,33 @@ async function login(event) {
     error.textContent = problem.message;
   } finally {
     setBusy(button, false);
+  }
+}
+
+async function demoLogin() {
+  const button = $("#demo-login-button");
+  const error = $("#login-error");
+  error.textContent = "";
+  setBusy(button, true, "Ingresando…");
+  try {
+    const payload = await request("/api/v1/auth/demo", { method: "POST" });
+    state.token = payload.access_token;
+    sessionStorage.setItem("fieldledger_token", state.token);
+    await startSession();
+  } catch (problem) {
+    error.textContent = problem.message;
+  } finally {
+    setBusy(button, false);
+  }
+}
+
+async function configureDemoAccess() {
+  try {
+    const response = await fetch("/api/v1/auth/demo", { cache: "no-store" });
+    const payload = await response.json();
+    $("#demo-login-button").hidden = payload.enabled !== true;
+  } catch {
+    $("#demo-login-button").hidden = true;
   }
 }
 
@@ -527,6 +555,7 @@ async function verifyDocument(event) {
 }
 
 $("#login-form").addEventListener("submit", login);
+$("#demo-login-button").addEventListener("click", demoLogin);
 $("#logout-button").addEventListener("click", () => logout());
 $("#refresh-button").addEventListener("click", () => refreshAll());
 $("#asset-search").addEventListener("input", renderAssets);
@@ -552,5 +581,6 @@ document.querySelectorAll("dialog").forEach((dialog) => dialog.addEventListener(
   if (event.target === dialog) dialog.close();
 }));
 
+configureDemoAccess();
 if (state.token) startSession();
 else $("#username").focus();

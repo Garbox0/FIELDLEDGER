@@ -1,9 +1,12 @@
 import os
+import time
+from collections import deque
 from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
+from threading import Lock
 
 import jwt
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
 from pwdlib import PasswordHash
@@ -18,6 +21,8 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 password_hash = PasswordHash.recommended()
 dummy_hash = password_hash.hash("fieldledger-dummy-password-never-used")
+_login_failures: dict[str, deque[float]] = {}
+_login_failures_lock = Lock()
 
 
 def get_password_hash(password: str) -> str:
@@ -51,6 +56,44 @@ def credentials_error() -> HTTPException:
     )
 
 
+def public_demo_enabled() -> bool:
+    return os.getenv("PUBLIC_DEMO_VIEWER", "false").lower() == "true"
+
+
+def login_client(request: Request) -> str:
+    if os.getenv("TRUST_CF_CONNECTING_IP", "false").lower() == "true":
+        cloudflare_ip = request.headers.get("CF-Connecting-IP")
+        if cloudflare_ip:
+            return cloudflare_ip[:64]
+    return request.client.host if request.client else "unknown"
+
+
+def enforce_login_rate_limit(client: str) -> None:
+    limit = max(1, int(os.getenv("LOGIN_RATE_LIMIT_ATTEMPTS", "10")))
+    window = max(1, int(os.getenv("LOGIN_RATE_LIMIT_WINDOW_SECONDS", "60")))
+    now = time.monotonic()
+    with _login_failures_lock:
+        failures = _login_failures.setdefault(client, deque())
+        while failures and failures[0] <= now - window:
+            failures.popleft()
+        if len(failures) >= limit:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Too many login attempts",
+                headers={"Retry-After": str(window)},
+            )
+
+
+def record_login_failure(client: str) -> None:
+    with _login_failures_lock:
+        _login_failures.setdefault(client, deque()).append(time.monotonic())
+
+
+def clear_login_failures(client: str) -> None:
+    with _login_failures_lock:
+        _login_failures.pop(client, None)
+
+
 def get_current_user(
     token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
 ) -> User:
@@ -82,16 +125,37 @@ def require_roles(*roles: AppRole) -> Callable[..., User]:
 
 @router.post("/login", response_model=Token)
 def login(
-    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
+    request: Request,
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db),
 ) -> Token:
+    client = login_client(request)
+    enforce_login_rate_limit(client)
     user = db.get(User, form_data.username) if len(form_data.username) <= 64 else None
     candidate_hash = user.password_hash if user is not None else dummy_hash
     valid_password = len(form_data.password) <= 128 and verify_password(
         form_data.password, candidate_hash
     )
     if user is None or not valid_password or not user.is_active:
+        record_login_failure(client)
         raise credentials_error()
+    clear_login_failures(client)
     return Token(access_token=create_access_token(user.username))
+
+
+@router.get("/demo", include_in_schema=False)
+def demo_status() -> dict[str, bool]:
+    return {"enabled": public_demo_enabled()}
+
+
+@router.post("/demo", response_model=Token, include_in_schema=False)
+def demo_login(db: Session = Depends(get_db)) -> Token:
+    if not public_demo_enabled():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    viewer = db.get(User, "viewer")
+    if viewer is None or not viewer.is_active or viewer.role != AppRole.VIEWER:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
+    return Token(access_token=create_access_token(viewer.username))
 
 
 @router.get("/me", response_model=UserRead)

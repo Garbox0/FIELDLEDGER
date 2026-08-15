@@ -2,7 +2,7 @@ import os
 
 from sqlalchemy import select
 
-from app.auth import get_password_hash
+from app.auth import get_password_hash, verify_password
 from app.database import SessionLocal
 from app.models import AppRole, Organization, OrganizationType, User
 
@@ -37,11 +37,18 @@ DEMO_USERS = (
 )
 
 
-def main() -> None:
-    password = os.getenv("DEMO_PASSWORD", "")
+def demo_password(username: str) -> str:
+    password = os.getenv(f"DEMO_{username.upper()}_PASSWORD") or os.getenv(
+        "DEMO_PASSWORD", ""
+    )
     if len(password) < 16:
-        raise RuntimeError("DEMO_PASSWORD must contain at least 16 characters")
+        raise RuntimeError(
+            f"password for demo user {username} must contain 16 characters"
+        )
+    return password
 
+
+def main() -> None:
     with SessionLocal() as db:
         existing_orgs = set(db.scalars(select(Organization.organization_id)))
         db.add_all(
@@ -51,9 +58,11 @@ def main() -> None:
         )
         db.commit()
 
-        existing_users = set(db.scalars(select(User.username)))
+        existing_users = {user.username: user for user in db.scalars(select(User))}
         for username, role, organization_id in DEMO_USERS:
-            if username not in existing_users:
+            password = demo_password(username)
+            user = existing_users.get(username)
+            if user is None:
                 db.add(
                     User(
                         username=username,
@@ -62,6 +71,8 @@ def main() -> None:
                         organization_id=organization_id,
                     )
                 )
+            elif not verify_password(password, user.password_hash):
+                user.password_hash = get_password_hash(password)
         db.commit()
 
     print("Seeded demo identities: admin, operator, contractor, auditor, viewer")

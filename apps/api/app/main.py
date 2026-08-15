@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import httpx
@@ -8,6 +9,7 @@ from minio.error import MinioException
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 from urllib3.exceptions import HTTPError as Urllib3Error
 
 from app.assets import router as assets_router
@@ -21,10 +23,24 @@ from app.storage import ObjectStorage, get_storage
 
 
 STATIC_DIR = Path(__file__).parent / "static"
+PUBLIC_DEMO = os.getenv("PUBLIC_DEMO_VIEWER", "false").lower() == "true"
 app = FastAPI(
     title="FieldLedger API",
-    version="0.4.0",
+    version="0.5.0",
     description="Integridad de activos, mantenimiento y verificación con Fabric.",
+    docs_url=None if PUBLIC_DEMO else "/docs",
+    redoc_url=None if PUBLIC_DEMO else "/redoc",
+    openapi_url=None if PUBLIC_DEMO else "/openapi.json",
+)
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=[
+        host.strip()
+        for host in os.getenv(
+            "TRUSTED_HOSTS", "127.0.0.1,localhost,testserver,api"
+        ).split(",")
+        if host.strip()
+    ],
 )
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(assets_router, prefix="/api/v1")
