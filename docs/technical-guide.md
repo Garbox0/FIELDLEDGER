@@ -249,14 +249,16 @@ Cloudflare independiente. La configuración de la Pi debe incluir:
 
 ```dotenv
 PUBLIC_DEMO_VIEWER=true
-TRUSTED_HOSTS=fieldledger.aerosftp.com,127.0.0.1,localhost,api
+TRUSTED_HOSTS=fieldledger.aerosftp.com,127.0.0.1,localhost,api,testserver
 TRUST_CF_CONNECTING_IP=true
 LOGIN_RATE_LIMIT_ATTEMPTS=10
 LOGIN_RATE_LIMIT_WINDOW_SECONDS=60
 ```
 
-El token de `cloudflared` es un secreto operativo: se guarda en la unidad de
-systemd creada por Cloudflare y nunca en Git, `.env` ni esta documentación.
+La credencial específica del túnel es un secreto operativo: queda bajo
+`/etc/cloudflared` con acceso de root y nunca en Git, `.env` ni esta
+documentación. El certificado amplio usado para crear el túnel se elimina de
+la cuenta `pi` después de registrar el DNS.
 
 `fabric-up.sh` clona el commit fijado de samples en `.runtime`, descarga el
 archivo binario ARM64 exacto de Fabric, fija las imágenes Docker, compila y
