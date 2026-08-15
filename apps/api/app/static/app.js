@@ -474,12 +474,14 @@ function renderEvents() {
 
     const decisionCell = document.createElement("td"); decisionCell.append(statusBadge(event.status));
     const ledgerCell = document.createElement("td");
-    ledgerCell.append(statusBadge(event.ledger_status));
+    const ledgerStack = element("div", "table-stack");
+    ledgerStack.append(statusBadge(event.ledger_status));
     if (event.ledger_tx_id) {
       const tx = element("span", "tx-id", event.ledger_tx_id);
       tx.title = event.ledger_tx_id;
-      ledgerCell.append(tx);
+      ledgerStack.append(tx);
     }
+    ledgerCell.append(ledgerStack);
 
     const actionsCell = document.createElement("td");
     const actions = element("div", "row-actions");

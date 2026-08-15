@@ -204,9 +204,9 @@ input::placeholder, textarea::placeholder { color: #9aa5a1; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: .6rem; padding-bottom: .35rem; }
 
 .stats-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-bottom: 1px solid var(--line-dark); }
-.stat-card { display: grid; min-height: 10.5rem; align-content: center; border-right: 1px solid var(--line); padding: 1.5rem 1.8rem; }
-.stat-card:first-child { padding-left: 0; }
-.stat-card:last-child { border-right: 0; }
+.stats-grid > .stat-card { display: grid; min-height: 10.5rem; align-content: center; border-right: 1px solid var(--line); padding: 1.5rem 1.8rem; }
+.stats-grid > .stat-card:first-child { padding-left: 0; }
+.stats-grid > .stat-card:last-child { border-right: 0; }
 .stat-card span { color: #667674; font-size: .72rem; font-weight: 680; }
 .stat-card strong { margin: .35rem 0; font-family: Georgia, "Times New Roman", serif; font-size: 2.35rem; font-weight: 500; letter-spacing: -.04em; }
 .stat-card small { color: #8b9693; font-size: .66rem; }
@@ -214,7 +214,7 @@ input::placeholder, textarea::placeholder { color: #9aa5a1; }
 .stat-health strong.not-ready { color: var(--red); }
 
 .section-block { scroll-margin-top: 6.5rem; padding-top: 5rem; }
-.section-heading { display: flex; align-items: end; justify-content: space-between; gap: 1rem; margin-bottom: 1.25rem; }
+.section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 1.25rem; }
 .section-heading h2, .verification-copy h2 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: 2.2rem; font-weight: 500; letter-spacing: -.035em; }
 .panel { border: 1px solid var(--line); border-radius: .35rem; background: var(--surface); box-shadow: 0 8px 26px rgba(27, 58, 54, .04); }
 .asset-grid { display: grid; grid-template-columns: minmax(18rem, .78fr) minmax(22rem, 1.22fr); gap: 1rem; }
@@ -251,18 +251,19 @@ input::placeholder, textarea::placeholder { color: #9aa5a1; }
 .table-scroll { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; text-align: left; }
 th { background: #f3f2ec; color: #70807d; font-size: .62rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
-th, td { border-bottom: 1px solid #e6e9e3; padding: .9rem 1rem; vertical-align: middle; }
+th, td { border-bottom: 1px solid #e6e9e3; padding: 1rem 1.1rem; vertical-align: middle; }
 td { font-size: .75rem; }
 tbody tr:last-child td { border-bottom: 0; }
-.table-primary { display: grid; gap: .2rem; }
-.table-primary strong { font-size: .76rem; }
-.table-primary span { color: #7a8784; font-size: .65rem; }
+.table-primary { display: grid; gap: .25rem; }
+.table-primary strong { font-size: .78rem; font-weight: 700; color: var(--ink); }
+.table-primary span { color: #7a8784; font-size: .66rem; }
+.table-stack { display: flex; flex-direction: column; align-items: flex-start; gap: .35rem; }
 .table-empty { padding: 2.5rem; color: #7b8785; text-align: center; font-size: .78rem; }
-.status-badge { display: inline-flex; align-items: center; gap: .4rem; border-radius: 999px; padding: .3rem .55rem; background: #eef0ec; color: #61706e; font-size: .59rem; font-weight: 850; }
+.status-badge { display: inline-flex; align-items: center; gap: .4rem; border-radius: 999px; padding: .3rem .55rem; background: #eef0ec; color: #61706e; font-size: .59rem; font-weight: 850; line-height: 1; }
 .status-badge.COMMITTED, .status-badge.APPROVED { background: var(--mint); color: var(--green); }
 .status-badge.PENDING, .status-badge.SUBMITTED, .status-badge.PROPOSED { background: #f8edd8; color: #855d19; }
 .status-badge.FAILED, .status-badge.REJECTED { background: #f5dfdc; color: var(--red); }
-.tx-id { display: block; max-width: 15rem; overflow: hidden; color: var(--green); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .65rem; text-overflow: ellipsis; white-space: nowrap; }
+.tx-id { display: block; max-width: 14rem; overflow: hidden; color: var(--green); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .64rem; text-overflow: ellipsis; white-space: nowrap; line-height: 1.2; }
 .row-actions { display: flex; flex-wrap: wrap; gap: .35rem; }
 .mini-button { border: 1px solid var(--line-dark); border-radius: .2rem; padding: .4rem .55rem; background: transparent; color: var(--ink-soft); cursor: pointer; font-size: .63rem; font-weight: 750; }
 .mini-button:hover { border-color: var(--green); color: var(--green); }
@@ -316,10 +317,10 @@ dialog::backdrop { background: rgba(10, 31, 29, .58); backdrop-filter: blur(4px)
 .panel-header-sub { padding: 1.2rem 1.5rem; border-bottom: 1px solid #e6e9e3; background: #faf9f5; display: flex; justify-content: space-between; align-items: center; }
 
 /* Multi-Document Badges & Lists */
-.doc-list { display: flex; flex-direction: column; gap: .35rem; }
-.doc-pill { display: inline-flex; align-items: center; gap: .45rem; border: 1px solid var(--line-dark); border-radius: .2rem; padding: .3rem .55rem; background: transparent; font-size: .65rem; cursor: pointer; transition: all .15s ease; color: var(--ink-soft); text-align: left; }
+.doc-list { display: flex; flex-direction: column; gap: .35rem; align-items: flex-start; }
+.doc-pill { display: inline-flex; align-items: center; gap: .5rem; border: 1px solid var(--line-dark); border-radius: .25rem; padding: .35rem .6rem; background: #fbfaf6; font-size: .68rem; cursor: pointer; transition: all .15s ease; color: var(--ink-soft); text-align: left; line-height: 1.2; }
 .doc-pill:hover { border-color: var(--green); background: #edf5ef; color: var(--green); }
-.doc-cat { display: inline-block; padding: .1rem .35rem; border-radius: .15rem; background: #e2ede7; color: var(--green-dark); font-size: .56rem; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; }
+.doc-cat { display: inline-block; padding: .15rem .45rem; border-radius: .2rem; background: var(--mint); color: var(--green-dark); font-size: .58rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; line-height: 1.1; }
 
 /* Timeline Modal Component */
 .timeline-container { display: flex; flex-direction: column; gap: 1.25rem; margin-top: 1.2rem; max-height: 60vh; overflow-y: auto; padding: .5rem .2rem; }
