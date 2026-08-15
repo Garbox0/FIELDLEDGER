@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="FieldLedger: integridad de activos, mantenimiento y telemetría verificable en Oil & Gas.">
+  <meta name="description" content="FieldLedger: integridad de activos, mantenimiento y telemetría verificable en Oil &amp; Gas.">
   <title>FieldLedger · Integridad Operacional &amp; Blockchain en Oil &amp; Gas</title>
-  <link rel="stylesheet" href="/app/styles.css">
-  <script src="/app/app.js" defer></script>
+  <link rel="stylesheet" href="/app/styles.css?v=20260815.1">
+  <script src="/app/app.js?v=20260815.1" defer></script>
 </head>
 <body>
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
@@ -24,7 +24,7 @@
       </div>
       <div class="trust-strip" aria-label="Características del sistema">
         <span>3 organizaciones</span>
-        <span>Merkle Trees</span>
+        <span>Árboles Merkle</span>
         <span>SHA-256</span>
         <span>Endorsement dual</span>
       </div>
@@ -68,9 +68,9 @@
         <a class="nav-link active" href="#overview"><span aria-hidden="true">01</span>Resumen</a>
         <a class="nav-link" href="#assets"><span aria-hidden="true">02</span>Activos</a>
         <a class="nav-link" href="#maintenance"><span aria-hidden="true">03</span>Mantenimiento</a>
-        <a class="nav-link" href="#telemetry"><span aria-hidden="true">04</span>Telemetría IoT</a>
-        <a class="nav-link" href="#ledger"><span aria-hidden="true">05</span>Ledger Fabric</a>
-        <a class="nav-link" href="#verify"><span aria-hidden="true">06</span>Verificar Evidencia</a>
+        <a class="nav-link" href="#telemetry"><span aria-hidden="true">04</span>Telemetría</a>
+        <a class="nav-link" href="#ledger"><span aria-hidden="true">05</span>Ledger</a>
+        <a class="nav-link" href="#verify"><span aria-hidden="true">06</span>Verificar</a>
       </nav>
       <div class="sidebar-foot">
         <span class="pulse-dot" aria-hidden="true"></span>
@@ -93,6 +93,7 @@
       </header>
 
       <div class="content">
+        <!-- 01 RESUMEN -->
         <section id="overview" class="hero-section">
           <div>
             <p class="eyebrow">TRAZABILIDAD INTEGRAL ENTRE ORGANIZACIONES</p>
@@ -101,19 +102,19 @@
           </div>
           <div class="hero-actions">
             <button id="hero-primary" class="button button-primary" type="button">Registrar activo</button>
-            <a class="button button-secondary" href="#telemetry">Telemetría de Sensores</a>
-            <a class="button button-secondary" href="#ledger">Ver bloques del ledger</a>
+            <a class="button button-secondary" href="#telemetry">Ver telemetría de sensores</a>
+            <a class="button button-secondary" href="#ledger">Ver actividad del ledger</a>
           </div>
         </section>
 
         <section class="stats-grid" aria-label="Indicadores">
           <article class="stat-card"><span>Activos registrados</span><strong id="asset-count">—</strong><small>fuente operacional</small></article>
-          <article class="stat-card"><span>Eventos registrados</span><strong id="event-count">—</strong><small>mantenimiento &amp; campo</small></article>
+          <article class="stat-card"><span>Eventos visibles</span><strong id="event-count">—</strong><small>activo seleccionado</small></article>
           <article class="stat-card"><span>Commits en Fabric</span><strong id="commit-count">—</strong><small>transacciones confirmadas</small></article>
           <article class="stat-card stat-health"><span>Estado del Sistema</span><strong id="health-status">Consultando</strong><small>API · Postgres · MinIO · Gateway</small></article>
         </section>
 
-        <!-- SECCIÓN 02: ACTIVOS -->
+        <!-- 02 ACTIVOS -->
         <section id="assets" class="section-block">
           <div class="section-heading">
             <div><p class="eyebrow">REGISTRO DE EQUIPOS &amp; INSTALACIONES</p><h2>Activos</h2></div>
@@ -136,7 +137,7 @@
           </div>
         </section>
 
-        <!-- SECCIÓN 03: MANTENIMIENTO -->
+        <!-- 03 MANTENIMIENTO -->
         <section id="maintenance" class="section-block">
           <div class="section-heading">
             <div><p class="eyebrow">WORKFLOW &amp; EVIDENCIAS DE CAMPO</p><h2>Mantenimiento</h2></div>
@@ -163,54 +164,68 @@
           </div>
         </section>
 
-        <!-- SECCIÓN 04: TELEMETRÍA IOT -->
+        <!-- 04 TELEMETRÍA IOT -->
         <section id="telemetry" class="section-block">
           <div class="section-heading">
             <div>
               <p class="eyebrow">INGESTA DE SENSORES &amp; ANCLAJE POR LOTES (ADR-002)</p>
-              <h2>Telemetría IoT</h2>
+              <h2>Telemetría de sensores</h2>
             </div>
             <div class="hero-actions">
-              <button id="simulate-telemetry-btn" class="button button-secondary" type="button">⚡ Simular lecturas de sensores</button>
-              <button id="anchor-batch-btn" class="button button-primary" type="button">🔒 Anclar Lote en Fabric (Merkle Tree)</button>
+              <button id="simulate-telemetry-btn" class="button button-secondary" type="button">Simular lecturas de campo</button>
+              <button id="anchor-batch-btn" class="button button-primary" type="button">Anclar lote en Fabric (Merkle Tree)</button>
             </div>
           </div>
 
-          <!-- Gauges en vivo -->
-          <div class="telemetry-gauges-grid" aria-label="Lecturas de Sensores en Tiempo Real">
-            <article class="gauge-card">
-              <span class="gauge-title">Presión en Boca de Pozo</span>
-              <div class="gauge-value-row"><strong id="val-pressure">—</strong><small>PSI</small></div>
-              <span class="gauge-desc">API Spec 6A / Rango nominal 1000-1500</span>
+          <!-- Paneles de instrumentación de sensores -->
+          <div class="telemetry-gauges-grid" aria-label="Indicadores de Telemetría">
+            <article class="stat-card gauge-box">
+              <span class="eyebrow-small">PRESIÓN EN BOCA DE POZO</span>
+              <div class="gauge-value-wrap">
+                <strong id="val-pressure" class="mono-value">—</strong>
+                <span class="unit-tag">PSI</span>
+              </div>
+              <small>API Spec 6A · Rango nominal 1000–1500</small>
             </article>
-            <article class="gauge-card">
-              <span class="gauge-title">Temperatura de Fluido</span>
-              <div class="gauge-value-row"><strong id="val-temperature">—</strong><small>°C</small></div>
-              <span class="gauge-desc">Monitoreo térmico de cabezal y bomba</span>
+            <article class="stat-card gauge-box">
+              <span class="eyebrow-small">TEMPERATURA DE CABEZAL</span>
+              <div class="gauge-value-wrap">
+                <strong id="val-temperature" class="mono-value">—</strong>
+                <span class="unit-tag">°C</span>
+              </div>
+              <small>Monitoreo térmico continuo de boca y bomba</small>
             </article>
-            <article class="gauge-card">
-              <span class="gauge-title">Vibración RMS de Bomba</span>
-              <div class="gauge-value-row"><strong id="val-vibration">—</strong><small>mm/s</small></div>
-              <span class="gauge-desc">ISO 10816-3 / Severidad mecánica</span>
+            <article class="stat-card gauge-box">
+              <span class="eyebrow-small">VIBRACIÓN RMS DE BOMBA</span>
+              <div class="gauge-value-wrap">
+                <strong id="val-vibration" class="mono-value">—</strong>
+                <span class="unit-tag">mm/s</span>
+              </div>
+              <small>ISO 10816-3 · Severidad mecánica</small>
             </article>
-            <article class="gauge-card">
-              <span class="gauge-title">Caudal Estimado</span>
-              <div class="gauge-value-row"><strong id="val-flow">—</strong><small>BPD</small></div>
-              <span class="gauge-desc">Barriles por día (producción bruta)</span>
+            <article class="stat-card gauge-box">
+              <span class="eyebrow-small">CAUDAL BRUTO ESTIMADO</span>
+              <div class="gauge-value-wrap">
+                <strong id="val-flow" class="mono-value">—</strong>
+                <span class="unit-tag">BPD</span>
+              </div>
+              <small>Barriles diarios de producción bruta</small>
             </article>
           </div>
 
-          <!-- Tabla de lotes anclados -->
+          <!-- Lotes anclados en Fabric -->
           <div class="panel table-panel" style="margin-top: 1.5rem;">
             <div class="panel-header-sub">
-              <strong>Lotes de Telemetría Anclados en Ledger</strong>
-              <small class="muted">Los datos crudos residen en base de datos; únicamente el Merkle Root SHA-256 se ancla en Fabric</small>
+              <div>
+                <strong>Lotes de telemetría certificados en Fabric</strong>
+                <p class="muted" style="margin: .2rem 0 0; font-size: .7rem;">Las lecturas crudas residen en base de datos; la raíz Merkle SHA-256 ancla inalterablemente el lote completo en el ledger.</p>
+              </div>
             </div>
             <div class="table-scroll">
               <table>
                 <thead>
                   <tr>
-                    <th>Batch ID</th>
+                    <th>Lote ID</th>
                     <th>Período Temporal</th>
                     <th>Lecturas</th>
                     <th>Merkle Root (SHA-256)</th>
@@ -222,11 +237,11 @@
                 <tbody id="telemetry-batches-table"></tbody>
               </table>
             </div>
-            <div id="telemetry-empty" class="table-empty">No hay lotes de telemetría registrados para este activo. Hacé clic en "Simular lecturas" y luego "Anclar Lote".</div>
+            <div id="telemetry-empty" class="table-empty">No hay lotes de telemetría registrados para este activo. Hacé clic en "Simular lecturas de campo" y luego "Anclar lote en Fabric".</div>
           </div>
         </section>
 
-        <!-- SECCIÓN 05: ACTIVIDAD DEL LEDGER -->
+        <!-- 05 LEDGER -->
         <section id="ledger" class="section-block">
           <div class="section-heading">
             <div><p class="eyebrow">TRANSACCIONES CERTIFICADAS</p><h2>Actividad del ledger</h2></div>
@@ -243,7 +258,7 @@
           </div>
         </section>
 
-        <!-- SECCIÓN 06: VERIFICACIÓN -->
+        <!-- 06 VERIFICAR -->
         <section id="verify" class="section-block verification-grid">
           <div class="verification-copy">
             <p class="eyebrow">AUDITORÍA CRIPTOGRÁFICA</p>
@@ -299,7 +314,7 @@
       <p id="maintenance-asset-label" class="dialog-context">—</p>
       <div class="form-grid">
         <label>ID del evento<input name="event_id" required minlength="3" maxlength="64" pattern="[A-Z0-9][A-Z0-9_-]+"></label>
-        <label>Tipo de Trabajo<select name="event_type"><option value="PREVENTIVE_MAINTENANCE">Mantenimiento preventivo</option><option value="CORRECTIVE_MAINTENANCE">Mantenimiento correctivo</option><option value="PART_REPLACEMENT">Reemplazo de componente</option><option value="INSPECTION">Inspección de integridad</option><option value="PRESSURE_TEST">Prueba de presión hidrostática</option><option value="CALIBRATION">Calibración de instrumentos</option><option value="CERTIFICATION">Certificación de aptitud</option></select></label>
+        <label>Tipo de Trabajo<select name="event_type"><option value="PREVENTIVE_MAINTENANCE">Mantenimiento preventivo</option><option value="CORRECTIVE_MAINTENANCE">Mantenimiento correctivo</option><option value="PART_REPLACEMENT">Reemplazo de componente</option><option value="INSPECTION">Inspección de integridad</option><option value="PRESSURE_TEST">Prueba hidrostática</option><option value="CALIBRATION">Calibración de instrumentos</option><option value="CERTIFICATION">Certificación de aptitud</option></select></label>
         <label class="span-2">Descripción del Trabajo &amp; Normativa<textarea name="description" required minlength="3" maxlength="4000" rows="4" placeholder="Detalle del trabajo técnico realizado, normativa aplicada (API/ASME/ISO) y observaciones"></textarea></label>
         <input name="idempotency_key" type="hidden">
       </div>
@@ -316,15 +331,15 @@
         <label class="span-2">Categoría Técnica de Evidencia
           <select name="category" required>
             <option value="WORK_ORDER">Orden de Trabajo / Permiso de Trabajo (PTW)</option>
-            <option value="CALIBRATION_CERT">Certificado de Calibración (Manómetros/Válvulas)</option>
+            <option value="CALIBRATION_CERT">Certificado de Calibración</option>
             <option value="INSPECTION_PHOTO">Fotografía de Inspección (Antes / Después)</option>
-            <option value="NDT_REPORT">Informe de Ensayos No Destructivos (NDT / Ultrasonido)</option>
-            <option value="LAB_ANALYSIS">Análisis de Laboratorio de Fluidos / Lubricantes</option>
+            <option value="NDT_REPORT">Informe de Ensayos No Destructivos (NDT)</option>
+            <option value="LAB_ANALYSIS">Análisis de Laboratorio</option>
             <option value="DECOMMISSION_RECORD">Acta de Desafectación / Abandono</option>
             <option value="OTHER" selected>Otra evidencia técnica</option>
           </select>
         </label>
-        <label class="span-2">Notas / Observaciones del Documento
+        <label class="span-2">Notas / Observaciones de la Evidencia
           <input name="notes" maxlength="500" placeholder="Ej: Prueba hidrostática 3000 PSI x 15 min según API 6A">
         </label>
       </div>
@@ -347,7 +362,7 @@
   <!-- MODAL: DESAFECTACIÓN / DECOMMISSIONING DE ACTIVO -->
   <dialog id="decommission-dialog">
     <form id="decommission-form" class="dialog-card dialog-small">
-      <div class="dialog-heading"><div><p class="eyebrow">OPERADORA · BAJA AUDITABLE</p><h2>Desafectar Activo (Decommission)</h2></div><button class="dialog-close" type="button" data-close="decommission-dialog" aria-label="Cerrar">×</button></div>
+      <div class="dialog-heading"><div><p class="eyebrow">OPERADORA · BAJA AUDITABLE</p><h2>Desafectar activo</h2></div><button class="dialog-close" type="button" data-close="decommission-dialog" aria-label="Cerrar">×</button></div>
       <p id="decommission-asset-label" class="dialog-context">—</p>
       <p class="muted">En Oil &amp; Gas los activos no se eliminan físicamente. La desafectación registra el abandono/baja formal con aval inmutable en Hyperledger Fabric.</p>
       <label>Motivo / Dictamen de Baja<textarea name="reason" required minlength="5" maxlength="2000" rows="4" placeholder="Ej: Agotamiento de reservorio, fin de vida útil de fatiga y taponamiento según Res. 5/96 de Secretaría de Energía"></textarea></label>
@@ -358,7 +373,7 @@
   <!-- MODAL: TRAZABILIDAD & TIMELINE DEL ACTIVO -->
   <dialog id="timeline-dialog">
     <div class="dialog-card" style="max-width: 52rem;">
-      <div class="dialog-heading"><div><p class="eyebrow">TRAZABILIDAD EN BLOCKCHAIN</p><h2 id="timeline-title">Línea de Tiempo del Activo</h2></div><button class="dialog-close" type="button" data-close="timeline-dialog" aria-label="Cerrar">×</button></div>
+      <div class="dialog-heading"><div><p class="eyebrow">TRAZABILIDAD EN BLOCKCHAIN</p><h2 id="timeline-title">Línea de tiempo del activo</h2></div><button class="dialog-close" type="button" data-close="timeline-dialog" aria-label="Cerrar">×</button></div>
       <p id="timeline-subtitle" class="dialog-context">—</p>
       <div id="timeline-body" class="timeline-container" aria-live="polite"></div>
       <div class="dialog-actions"><button class="button button-ghost" type="button" data-close="timeline-dialog">Cerrar</button></div>

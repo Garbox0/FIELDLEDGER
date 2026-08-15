@@ -66,6 +66,14 @@ const labels = {
     DECOMMISSION_RECORD: "Acta de Desafectación",
     OTHER: "Evidencia General",
   },
+  timelineMarks: {
+    CREATION: "ALTA",
+    EVENT: "MANT",
+    DOCUMENT: "DOC",
+    REVIEW: "REV",
+    TELEMETRY_BATCH: "IOT",
+    DECOMMISSION: "BAJA",
+  },
 };
 
 const errors = {
@@ -408,13 +416,13 @@ function renderAssetDetail() {
 
   // Action buttons bar
   const actionsBar = element("div", "detail-actions-bar");
-  const timelineBtn = element("button", "button button-secondary", "📜 Ver Trazabilidad / Timeline");
+  const timelineBtn = element("button", "button button-secondary", "Ver trazabilidad e historial");
   timelineBtn.type = "button";
   timelineBtn.addEventListener("click", () => openTimeline(asset.asset_id));
   actionsBar.append(timelineBtn);
 
   if (asset.status !== "DECOMMISSIONED" && roles.decommission.has(state.user.role)) {
-    const decomBtn = element("button", "button button-ghost", "🛑 Desafectar Activo");
+    const decomBtn = element("button", "button button-ghost", "Desafectar activo");
     decomBtn.type = "button";
     decomBtn.addEventListener("click", () => openDecommission(asset.asset_id));
     actionsBar.append(decomBtn);
@@ -519,7 +527,7 @@ function renderTelemetry() {
       element("td", "tx-id", batch.ledger_tx_id || "Pendiente Fabric"),
     );
     const actionsCell = document.createElement("td");
-    actionsCell.append(actionButton("Verificar Merkle", () => verifyTelemetryBatch(batch.batch_id)));
+    actionsCell.append(actionButton("Auditar Merkle", () => verifyTelemetryBatch(batch.batch_id)));
     row.append(actionsCell);
     body.append(row);
   });
@@ -565,9 +573,9 @@ async function verifyTelemetryBatch(batchId) {
       body: { batch_id: batchId },
     });
     if (result.verified) {
-      showToast(`✓ Lote ${batchId} auditado: el Merkle Root coincide con el registro inmutable.`);
+      showToast(`Lote ${batchId} auditado: el Merkle Root coincide con el registro inmutable.`);
     } else {
-      showToast(`✕ Error de integridad en lote ${batchId}: Merkle root no coincide.`, true);
+      showToast(`Error de integridad en lote ${batchId}: Merkle root no coincide.`, true);
     }
   } catch (err) {
     showToast(err.message, true);
@@ -579,8 +587,8 @@ async function openTimeline(assetId) {
   const title = $("#timeline-title");
   const subtitle = $("#timeline-subtitle");
   const body = $("#timeline-body");
-  title.textContent = `Trazabilidad y Línea de Tiempo: ${assetId}`;
-  subtitle.textContent = "Cargando historial certificado desde PostgreSQL y Hyperledger Fabric…";
+  title.textContent = `Trazabilidad y línea de tiempo: ${assetId}`;
+  subtitle.textContent = "Consultando historial certificado desde PostgreSQL y Hyperledger Fabric…";
   body.replaceChildren(element("div", "table-empty", "Consultando eventos y transacciones…"));
   openDialog("timeline-dialog");
 
@@ -589,12 +597,13 @@ async function openTimeline(assetId) {
     subtitle.textContent = `${response.asset_name} · ${response.timeline.length} hitos auditados`;
     body.replaceChildren();
 
-    response.timeline.forEach((item) => {
+    response.timeline.forEach((item, idx) => {
       const node = element("div", "timeline-node");
-      const icon = element("div", `timeline-icon ${item.item_type}`, iconForType(item.item_type));
-      const content = element("div", "timeline-content");
+      const markLabel = translated("timelineMarks", item.item_type) || String(idx + 1).padStart(2, "0");
+      const mark = element("div", `timeline-mark ${item.item_type}`, markLabel);
+      const card = element("div", "timeline-card");
 
-      const head = element("div", "timeline-content-head");
+      const head = element("div", "timeline-card-head");
       head.append(element("strong", null, item.title), element("span", "timeline-time", formatDate(item.timestamp)));
 
       const desc = element("p", "timeline-desc", item.description);
@@ -606,27 +615,15 @@ async function openTimeline(assetId) {
         tx.title = item.ledger_tx_id;
         meta.append(tx);
       }
-      if (item.block_number) meta.append(element("span", null, `Bloque: #${item.block_number}`));
+      if (item.block_number) meta.append(element("span", null, `Bloque #${item.block_number}`));
       if (item.document_hash) meta.append(element("span", "hash-tag", `SHA-256: ${item.document_hash.slice(0, 16)}…`));
 
-      content.append(head, desc, meta);
-      node.append(icon, content);
+      card.append(head, desc, meta);
+      node.append(mark, card);
       body.append(node);
     });
   } catch (err) {
     body.replaceChildren(element("div", "table-empty", `Error al cargar timeline: ${err.message}`));
-  }
-}
-
-function iconForType(type) {
-  switch (type) {
-    case "CREATION": return "✦";
-    case "EVENT": return "🔧";
-    case "DOCUMENT": return "📄";
-    case "REVIEW": return "✍";
-    case "TELEMETRY_BATCH": return "📡";
-    case "DECOMMISSION": return "🛑";
-    default: return "•";
   }
 }
 
