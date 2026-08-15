@@ -250,22 +250,22 @@ input::placeholder, textarea::placeholder { color: #9aa5a1; }
 .table-panel { overflow: hidden; }
 .table-scroll { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; text-align: left; }
-th { background: #f3f2ec; color: #70807d; font-size: .62rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
-th, td { border-bottom: 1px solid #e6e9e3; padding: 1rem 1.1rem; vertical-align: middle; }
+th { background: #f3f2ec; color: #70807d; font-size: .62rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+th, td { border-bottom: 1px solid #e6e9e3; padding: 1rem 1rem; vertical-align: middle; }
 td { font-size: .75rem; }
 tbody tr:last-child td { border-bottom: 0; }
-.table-primary { display: grid; gap: .25rem; }
-.table-primary strong { font-size: .78rem; font-weight: 700; color: var(--ink); }
-.table-primary span { color: #7a8784; font-size: .66rem; }
+.table-primary { display: grid; gap: .2rem; }
+.table-primary strong { font-size: .75rem; font-weight: 700; color: var(--ink); white-space: nowrap; }
+.table-primary span { color: #7a8784; font-size: .66rem; white-space: nowrap; }
 .table-stack { display: flex; flex-direction: column; align-items: flex-start; gap: .35rem; }
 .table-empty { padding: 2.5rem; color: #7b8785; text-align: center; font-size: .78rem; }
-.status-badge { display: inline-flex; align-items: center; gap: .4rem; border-radius: 999px; padding: .3rem .55rem; background: #eef0ec; color: #61706e; font-size: .59rem; font-weight: 850; line-height: 1; }
+.status-badge { display: inline-flex; align-items: center; gap: .4rem; border-radius: 999px; padding: .3rem .55rem; background: #eef0ec; color: #61706e; font-size: .59rem; font-weight: 850; line-height: 1; white-space: nowrap; }
 .status-badge.COMMITTED, .status-badge.APPROVED { background: var(--mint); color: var(--green); }
 .status-badge.PENDING, .status-badge.SUBMITTED, .status-badge.PROPOSED { background: #f8edd8; color: #855d19; }
 .status-badge.FAILED, .status-badge.REJECTED { background: #f5dfdc; color: var(--red); }
 .tx-id { display: block; max-width: 14rem; overflow: hidden; color: var(--green); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .64rem; text-overflow: ellipsis; white-space: nowrap; line-height: 1.2; }
 .row-actions { display: flex; flex-wrap: wrap; gap: .35rem; }
-.mini-button { border: 1px solid var(--line-dark); border-radius: .2rem; padding: .4rem .55rem; background: transparent; color: var(--ink-soft); cursor: pointer; font-size: .63rem; font-weight: 750; }
+.mini-button { border: 1px solid var(--line-dark); border-radius: .2rem; padding: .4rem .55rem; background: transparent; color: var(--ink-soft); cursor: pointer; font-size: .63rem; font-weight: 750; white-space: nowrap; }
 .mini-button:hover { border-color: var(--green); color: var(--green); }
 .mini-button.approve { border-color: #8db39a; color: var(--green); }
 .mini-button.reject { border-color: #d5aaa4; color: var(--red); }
@@ -308,7 +308,7 @@ dialog::backdrop { background: rgba(10, 31, 29, .58); backdrop-filter: blur(4px)
 
 /* Telemetry Gauges */
 .telemetry-gauges-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: .35rem; background: var(--surface); overflow: hidden; box-shadow: 0 8px 26px rgba(27, 58, 54, .04); }
-.gauge-box { display: grid; min-height: 10.5rem; align-content: center; border-right: 1px solid var(--line); padding: 1.5rem 1.8rem; background: var(--surface); }
+.gauge-box { display: flex; flex-direction: column; justify-content: space-between; min-height: 10.5rem; border-right: 1px solid var(--line); padding: 1.5rem 1.8rem; background: var(--surface); }
 .gauge-box:last-child { border-right: 0; }
 .eyebrow-small { color: var(--green); font-size: .65rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; margin-bottom: .2rem; }
 .gauge-value-wrap { display: flex; align-items: baseline; gap: .4rem; margin: .35rem 0; }
@@ -318,9 +318,9 @@ dialog::backdrop { background: rgba(10, 31, 29, .58); backdrop-filter: blur(4px)
 
 /* Multi-Document Badges & Lists */
 .doc-list { display: flex; flex-direction: column; gap: .35rem; align-items: flex-start; }
-.doc-pill { display: inline-flex; align-items: center; gap: .5rem; border: 1px solid var(--line-dark); border-radius: .25rem; padding: .35rem .6rem; background: #fbfaf6; font-size: .68rem; cursor: pointer; transition: all .15s ease; color: var(--ink-soft); text-align: left; line-height: 1.2; }
+.doc-pill { display: inline-flex; align-items: center; gap: .5rem; border: 1px solid var(--line-dark); border-radius: .25rem; padding: .3rem .55rem; background: #fbfaf6; font-size: .67rem; cursor: pointer; transition: all .15s ease; color: var(--ink-soft); text-align: left; line-height: 1.2; white-space: nowrap; }
 .doc-pill:hover { border-color: var(--green); background: #edf5ef; color: var(--green); }
-.doc-cat { display: inline-block; padding: .15rem .45rem; border-radius: .2rem; background: var(--mint); color: var(--green-dark); font-size: .58rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; line-height: 1.1; }
+.doc-cat { display: inline-block; padding: .15rem .4rem; border-radius: .2rem; background: var(--mint); color: var(--green-dark); font-size: .56rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; line-height: 1.1; }
 
 /* Timeline Modal Component */
 .timeline-container { display: flex; flex-direction: column; gap: 1.25rem; margin-top: 1.2rem; max-height: 60vh; overflow-y: auto; padding: .5rem .2rem; }
