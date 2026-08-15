@@ -137,8 +137,11 @@ FastAPI/Starlette de `httpx` a `httpx2`; no es una falla.
 - Límites y decisiones: `docs/architecture.md`, `docs/adr/`.
 
 El workspace de Windows es `D:\Proyectos\OilLedger`. El repositorio remoto es
-`Garbox0/FIELDLEDGER` y la rama de publicación inicial es `main`. Preservar el
-trabajo del usuario: no usar reset destructivo ni reescribir historia.
+`Garbox0/FIELDLEDGER`. La interfaz está en `agent/interfaz-web`, commit
+`a07c898`, y PR borrador `#1`; `main` conserva el checkpoint inicial hasta la
+aceptación visual y el merge. Los archivos de esa rama ya están desplegados en
+la Pi. Preservar el trabajo del usuario: no usar reset destructivo ni
+reescribir historia.
 
 ## Secretos e identidades
 
