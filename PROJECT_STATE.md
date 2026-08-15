@@ -1,7 +1,6 @@
 # Estado del proyecto FieldLedger
 
-Última verificación: 14 de agosto de 2026, 23:38 ART / 15 de agosto de 2026,
-02:38 UTC.
+Última verificación: 15 de agosto de 2026, 00:14 ART / 03:14 UTC.
 
 Este es el punto de entrada para el relevo por parte de una futura IA o de un
 ingeniero. Debe actualizarse después de cada checkpoint. Nunca colocar aquí
@@ -88,6 +87,10 @@ y únicamente sobre loopback.
   informaron cero vulnerabilidades conocidas.
 - Workflow CI agregado en `.github/workflows/ci.yml`: API Python, chaincode,
   gateway y auditorías de dependencias, con permisos de solo lectura.
+- GitHub Actions run `31861229121`: API Python, chaincode y gateway aprobados;
+  GitGuardian también aprobado. El primer run reveló que el entrypoint `pytest`
+  no agregaba el working directory al path en GitHub; commit `d5b3275` lo
+  corrigió usando `python -m pytest`. Las 15 pruebas pasaron en CI.
 - Una repetición del bootstrap expuso y corrigió un error de detección del
   chaincode ya confirmado. El intento de aprobar nuevamente la secuencia 1
   quedó inválido en el bloque 20 (`ENDORSEMENT_POLICY_FAILURE`) y no cambió el
@@ -139,11 +142,11 @@ FastAPI/Starlette de `httpx` a `httpx2`; no es una falla.
 - Límites y decisiones: `docs/architecture.md`, `docs/adr/`.
 
 El workspace de Windows es `D:\Proyectos\OilLedger`. El repositorio remoto es
-`Garbox0/FIELDLEDGER`. La interfaz está en `agent/interfaz-web`, commit
-`a07c898`, y PR borrador `#1`; `main` conserva el checkpoint inicial hasta la
-aceptación visual y el merge. Los archivos de esa rama ya están desplegados en
-la Pi. Preservar el trabajo del usuario: no usar reset destructivo ni
-reescribir historia.
+`Garbox0/FIELDLEDGER`. La interfaz está en `agent/interfaz-web`: implementación
+`a07c898`, corrección CI `d5b3275` y PR borrador `#1`. `main` conserva el
+checkpoint inicial hasta la aceptación visual y el merge. Los archivos de la
+interfaz ya están desplegados en la Pi. Preservar el trabajo del usuario: no
+usar reset destructivo ni reescribir historia.
 
 ## Secretos e identidades
 
