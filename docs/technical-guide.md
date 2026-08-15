@@ -9,6 +9,8 @@ forma explícita.
 ```text
 127.0.0.1:8095
        |
+    UI web
+       |
     FastAPI ----------------------> PostgreSQL
        |                               |
        +---------------------------> MinIO
@@ -156,6 +158,26 @@ gateway que evalúe `GetDocumentByHash` usando la identidad de AuditorOrg.
 SHA-256 prueba igualdad byte a byte con la evidencia registrada. No cifra el
 archivo ni prueba que su contenido sea verdadero.
 
+## Interfaz web y seguridad del navegador
+
+FastAPI sirve `apps/api/app/static/` bajo `/app/`. La implementación usa HTML,
+CSS y JavaScript nativos para evitar un toolchain, dependencias y contenedor
+adicionales sobre la Raspberry Pi.
+
+- El JWT vive en `sessionStorage` y desaparece al cerrar la pestaña; la
+  contraseña nunca se almacena.
+- La autorización efectiva siempre pertenece al backend. Ocultar botones por
+  rol es solo una ayuda de UX.
+- Los datos dinámicos se insertan como `textContent`, no como HTML ejecutable.
+- CSP permite recursos y conexiones del mismo origen, sin scripts inline.
+- `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy` y
+  `Permissions-Policy` se aplican sobre `/` y `/app`.
+- No hay CORS ni puerto nuevo porque UI y API comparten origen.
+
+`GET /api/v1/ledger/operations` devuelve las últimas operaciones autenticadas
+con estado, intentos, transaction ID y bloque. No expone payload ni error
+interno de la outbox.
+
 ## Rutas de la API
 
 ```text
@@ -178,6 +200,8 @@ POST   /api/v1/events/{event_id}/documents
 GET    /api/v1/documents/{document_id}
 POST   /api/v1/documents/verify
 
+GET    /api/v1/ledger/operations
+
 GET    /health
 GET    /ready
 ```
@@ -198,6 +222,12 @@ make ledger-status
 curl -fsS http://127.0.0.1:8095/ready
 ```
 
+Abrir `http://127.0.0.1:8095/app/`. Desde otra máquina utilizar un túnel SSH:
+
+```bash
+ssh -L 8095:127.0.0.1:8095 usuario@host-raspberry
+```
+
 `fabric-up.sh` clona el commit fijado de samples en `.runtime`, descarga el
 archivo binario ARM64 exacto de Fabric, fija las imágenes Docker, compila y
 prueba el chaincode, crea el canal de tres organizaciones y confirma el
@@ -215,6 +245,10 @@ make ledger-status
 make logs
 make backup
 ```
+
+Las pruebas unitarias fuerzan `LEDGER_ENABLED=false` para no depender de
+infraestructura externa; la prueba específica de verificación habilita un
+doble controlado. `make ledger-smoke` sigue siendo la aceptación real de Fabric.
 
 `make ledger-smoke` crea un activo, evento y evidencia de laboratorio con
 nombres únicos, espera los cuatro commits reales, verifica el PDF original,

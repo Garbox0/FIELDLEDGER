@@ -5,10 +5,10 @@ industria de Oil & Gas. Mantiene los datos operativos en PostgreSQL, los
 archivos de evidencia en MinIO y registra en Hyperledger Fabric hechos
 compactos que deben poder auditarse entre distintas organizaciones.
 
-El hito actual, desplegado en una Raspberry Pi, incluye una red Fabric real de
-tres organizaciones, chaincode, gateway privado, outbox transaccional y
-verificación documental respaldada por el ledger. El sistema en ejecución no
-simula la blockchain.
+El hito actual, desplegado en una Raspberry Pi, incluye una interfaz web en
+español, una red Fabric real de tres organizaciones, chaincode, gateway
+privado, outbox transaccional y verificación documental respaldada por el
+ledger. El sistema en ejecución no simula la blockchain.
 
 ## Qué demuestra el proyecto
 
@@ -30,7 +30,8 @@ producción.
 
 ```mermaid
 flowchart LR
-    Usuarios[Operadora / Contratista / Auditor] --> API[FastAPI]
+    Usuarios[Operadora / Contratista / Auditor] --> UI[Interfaz web]
+    UI --> API[FastAPI]
     API --> DB[(PostgreSQL)]
     API --> Archivos[(MinIO)]
     API --> Outbox[(Outbox del ledger)]
@@ -64,9 +65,32 @@ make ledger-status
 curl -fsS http://127.0.0.1:8095/ready
 ```
 
-La API y la interfaz OpenAPI se vinculan únicamente a loopback en
-`http://127.0.0.1:8095` y `/docs`. PostgreSQL, MinIO y Fabric Gateway no
-publican puertos en el host.
+La aplicación se abre en `http://127.0.0.1:8095/app/` y OpenAPI en `/docs`.
+Ambas se vinculan únicamente a loopback. Para acceder desde otra computadora,
+crear un túnel sin publicar el servicio:
+
+```bash
+ssh -L 8095:127.0.0.1:8095 usuario@host-raspberry
+```
+
+PostgreSQL, MinIO y Fabric Gateway no publican puertos en el host.
+
+## Interfaz web
+
+La UI usa HTML, CSS y JavaScript nativos servidos por FastAPI. No agrega
+framework, build de frontend, contenedor ni puerto. Incluye:
+
+- login y cambio de identidad por rol;
+- listado y detalle de activos;
+- alta de activos para operadora/administrador;
+- propuesta de mantenimiento para contratista;
+- evidencia privada, aprobación y rechazo;
+- actividad de la outbox con estado, transaction ID y bloque;
+- verificación de PDF/JPEG/PNG contra Fabric.
+
+El token se conserva en `sessionStorage`; la contraseña no se persiste. La UI
+usa CSP sin scripts inline, bloqueo de frames y render seguro de datos
+dinámicos.
 
 Operaciones habituales:
 
@@ -102,6 +126,7 @@ POST   /api/v1/events/{event_id}/reject
 POST   /api/v1/events/{event_id}/documents
 GET    /api/v1/documents/{document_id}
 POST   /api/v1/documents/verify
+GET    /api/v1/ledger/operations
 GET    /health
 GET    /ready
 ```
@@ -130,8 +155,9 @@ Comprobada y desplegada el 14 de agosto de 2026:
 | MinIO | RELEASE.2025-07-23T15-54-02Z |
 
 La última aceptación en vivo confirmó los bloques 21 a 24, verificó el PDF
-original y rechazó una copia modificada. Pasaron 13/13 pruebas Python, 2/2 del
-chaincode y 2/2 del gateway.
+original y rechazó una copia modificada. Pasaron 15/15 pruebas Python, 2/2 del
+chaincode y 2/2 del gateway. El 14 de agosto de 2026, `pip-audit` y ambos
+`npm audit --omit=dev` informaron cero vulnerabilidades conocidas.
 
 Fuentes de Fabric: [instalación y versiones](https://hyperledger-fabric.readthedocs.io/en/latest/install.html),
 [notas de Fabric 2.5 LTS](https://hyperledger-fabric.readthedocs.io/en/release-2.5/whatsnew.html),
@@ -143,8 +169,8 @@ y [API de Gateway](https://hyperledger.github.io/fabric-gateway/main/api/node/in
 - La topología Fabric deriva de la red educativa oficial `test-network`,
   ejecutada en un único host con tres organizaciones. No es infraestructura
   productiva.
-- Todavía no existen interfaz web, telemetría MQTT, dashboards, CI/CD, OIDC,
-  TLS de ingreso, alta disponibilidad, HSM ni recuperación externa.
+- Todavía no existen telemetría MQTT, dashboards, CI/CD, OIDC, TLS de ingreso,
+  alta disponibilidad, HSM ni recuperación externa.
 - Se admite un documento primario por evento de mantenimiento.
 - Los JWT no pueden revocarse antes de vencer y el login no tiene rate limit.
 - El kernel de la Pi no aplica los límites de memoria declarados por Docker.
@@ -158,4 +184,5 @@ y [API de Gateway](https://hyperledger.github.io/fabric-gateway/main/api/node/in
 Esta es una plataforma de laboratorio. No controla equipos de campo, no tiene
 criptomoneda, token ni minería, no registra documentos completos ni telemetría
 cruda en el ledger, no guarda secretos en Git y no publica rutas externas de
-manera predeterminada.
+manera predeterminada. Consultar [SECURITY.md](SECURITY.md) antes de exponer o
+adaptar el sistema.

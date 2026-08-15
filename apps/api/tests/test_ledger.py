@@ -52,6 +52,19 @@ def test_mutations_enqueue_ordered_ledger_operations(
             "ContractorOrg",
             "OperatorOrg",
         ]
+
+        response = client.get(
+            "/api/v1/ledger/operations", headers=auth_headers("viewer")
+        )
+        assert response.status_code == 200
+        assert [item["action"] for item in reversed(response.json())] == [
+            "REGISTER_ASSET",
+            "PROPOSE_EVENT",
+            "REGISTER_DOCUMENT",
+            "REVIEW_EVENT",
+        ]
+        assert "payload" not in response.json()[0]
+        assert "last_error" not in response.json()[0]
     finally:
         override.close()
 

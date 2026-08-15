@@ -1,7 +1,7 @@
 # Estado del proyecto FieldLedger
 
-Última verificación: 14 de agosto de 2026, 23:06 ART / 15 de agosto de 2026,
-02:06 UTC.
+Última verificación: 14 de agosto de 2026, 23:38 ART / 15 de agosto de 2026,
+02:38 UTC.
 
 Este es el punto de entrada para el relevo por parte de una futura IA o de un
 ingeniero. Debe actualizarse después de cada checkpoint. Nunca colocar aquí
@@ -9,10 +9,11 @@ contraseñas, tokens, claves privadas ni contenidos de `.env`.
 
 ## Checkpoint actual
 
-El flujo real de mantenimiento respaldado por ledger está funcionando en la
-Raspberry Pi:
+La interfaz web y el flujo real de mantenimiento respaldado por ledger están
+funcionando en la Raspberry Pi:
 
 ```text
+UI web en español -> FastAPI
 Transacción de negocio en FastAPI
   -> datos PostgreSQL + outbox durable en un mismo commit
   -> worker del ledger
@@ -40,6 +41,7 @@ a nivel de bytes no.
 | Raíz del proyecto | `/home/pi/fieldledger` |
 | Repositorio | `https://github.com/Garbox0/FIELDLEDGER.git`, rama `main` |
 | API | `http://127.0.0.1:8095` |
+| Interfaz | `http://127.0.0.1:8095/app/`, solo loopback/túnel SSH |
 | Fabric | `2.5.16` LTS, canal `fieldledgerchannel` |
 | Chaincode | `fieldledger` 1.0, secuencia 1 |
 | Endorsement | `AND('Org1MSP.peer','Org2MSP.peer')` |
@@ -61,7 +63,7 @@ y únicamente sobre loopback.
 
 ## Evidencia objetiva
 
-- Pruebas Python en ARM64: `13 passed, 1 upstream warning`.
+- Pruebas Python: `15 passed, 1 upstream warning`.
 - Pruebas de chaincode: `2 passed`; pruebas de gateway: `2 passed`.
 - Alembic: `No new upgrade operations detected.`
 - El demo anterior al ledger fue reconciliado en los bloques 8 a 11; las cuatro
@@ -78,6 +80,12 @@ y únicamente sobre loopback.
 - La evidencia original devolvió `verified=true`; la modificada devolvió
   `verified=false`.
 - Los healthchecks de API y gateway quedaron saludables después de la prueba.
+- La UI desplegada respondió HTTP 200 con CSP y `X-Frame-Options: DENY`; login
+  real y `GET /api/v1/ledger/operations` devolvieron correctamente las 16
+  operaciones. La inspección visual automatizada quedó pendiente porque el
+  puente del navegador integrado no estuvo disponible en esta sesión.
+- Auditorías del 2026-08-14: `pip-audit` y los dos `npm audit --omit=dev`
+  informaron cero vulnerabilidades conocidas.
 - Una repetición del bootstrap expuso y corrigió un error de detección del
   chaincode ya confirmado. El intento de aprobar nuevamente la secuencia 1
   quedó inválido en el bloque 20 (`ENDORSEMENT_POLICY_FAILURE`) y no cambió el
@@ -104,6 +112,12 @@ FastAPI/Starlette de `httpx` a `httpx2`; no es una falla.
   tiempo e historial.
 - `POST /api/v1/documents/verify` siempre consulta Fabric cuando está habilitado.
 - `/ready` verifica PostgreSQL, MinIO y Fabric Gateway.
+- UI web responsive en español para login, activos, mantenimiento, evidencia,
+  actividad del ledger y verificación; usa JavaScript nativo, `sessionStorage`
+  para el JWT y no persiste contraseñas.
+- `GET /api/v1/ledger/operations` expone a usuarios autenticados estado,
+  transaction ID y bloque, sin payload ni errores internos.
+- Headers CSP, anti-framing, `nosniff`, referrer y permissions policy sobre la UI.
 - Backups con timestamp de PostgreSQL/MinIO, manifiestos SHA-256 y preflight
   que reserva al menos 10 GiB de la SD.
 
@@ -117,6 +131,7 @@ FastAPI/Starlette de `httpx` a `httpx2`; no es una falla.
 - Reconciliación: `apps/api/app/reconcile_ledger.py`.
 - Base de datos: `apps/api/app/models.py`, migración `20260814_0004`.
 - Aceptación en vivo: `apps/api/app/e2e_ledger_smoke.py`.
+- Interfaz web: `apps/api/app/static/`; se sirve desde `apps/api/app/main.py`.
 - Operación: `docs/technical-guide.md`.
 - Explicación no técnica: `docs/non-technical-guide.md`.
 - Límites y decisiones: `docs/architecture.md`, `docs/adr/`.
@@ -175,7 +190,7 @@ explícitamente backups verificados antiguos si aparece la alerta de 15 GiB.
   en un único host, no un despliegue productivo distribuido.
 - Las identidades `cryptogen` son de laboratorio; no existen CA productiva,
   HSM, rotación de certificados ni custodia independiente entre empresas.
-- No existen todavía UI web, telemetría/MQTT, Prometheus/Grafana ni pipeline CI.
+- No existen todavía telemetría/MQTT, Prometheus/Grafana ni pipeline CI.
 - No están implementados revocación/refresh de JWT, rate limiting, TLS, OIDC,
   alta disponibilidad ni recuperación externa ante desastres.
 - Se permite un documento primario por evento de mantenimiento.
@@ -189,11 +204,11 @@ explícitamente backups verificados antiguos si aparece la alerta de 15 GiB.
 
 ## Próximo paso exacto
 
-Construir una interfaz web delgada sobre el backend real. La primera entrega
-debe mostrar login, listado/detalle de activos, propuesta y revisión de
-mantenimiento, carga de evidencia, estado outbox/ledger, ID de transacción y
-verificación original versus archivo modificado. No comenzar telemetría hasta
-que este flujo sea usable y demostrable desde el navegador.
+Realizar una aceptación visual manual de la UI a través de túnel SSH y ejecutar
+el relato completo cambiando entre operadora, contratista y auditor: alta,
+propuesta, evidencia, aprobación, commit y verificación original/modificada.
+Capturar luego dos o tres imágenes sin datos sensibles para el README/portfolio.
+Corregir cualquier detalle visual encontrado antes de comenzar telemetría.
 
 ## Comandos para el relevo
 

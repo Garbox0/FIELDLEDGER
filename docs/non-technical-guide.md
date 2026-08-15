@@ -129,6 +129,16 @@ puesto en cuarentena por software hasta su reemplazo. Todos los datos quedan en
 la SD saludable, con controles previos a backups y umbrales visibles de 10/15
 GiB.
 
+### Interfaz web
+
+La interfaz reúne el relato completo en español: login, activos, propuestas,
+evidencia, decisiones, estado del ledger y verificación. Cada rol ve las
+acciones que le corresponden, pero la seguridad real se vuelve a comprobar en
+la API; ocultar un botón no concede ni reemplaza permisos.
+
+No se agregó un framework de frontend. Esto reduce dependencias y consumo en
+la Pi sin sacrificar el flujo demostrable.
+
 ## Historia para una demostración
 
 La demostración verificada es:
@@ -144,8 +154,9 @@ La demostración verificada es:
 9. El auditor carga el PDF original y obtiene `verified=true`.
 10. El auditor carga una copia modificada y obtiene `verified=false`.
 
-La última aceptación utilizó los bloques 21 a 24. Eso demuestra el camino del
-backend; la interfaz web todavía es la próxima entrega de producto.
+La última aceptación de Fabric utilizó los bloques 21 a 24. La interfaz web ya
+está desplegada y conectada al backend; queda realizar la aceptación visual
+manual del relato completo y capturar material de portfolio sin datos sensibles.
 
 ## Cómo presentarlo en una entrevista
 
@@ -239,7 +250,7 @@ Implementado y verificado:
 
 Pendiente:
 
-- interfaz web para el backend existente;
+- aceptación visual, capturas y video breve del flujo web;
 - telemetría MQTT y anclaje por lotes;
 - Prometheus/Grafana y CI/CD;
 - IAM empresarial, certificados productivos, HA y gobierno multi-host.

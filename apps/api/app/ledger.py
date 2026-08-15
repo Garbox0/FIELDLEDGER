@@ -2,10 +2,17 @@ import os
 from typing import Protocol
 
 import httpx
-from fastapi import HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import LedgerOutbox, LedgerStatus
+from app.auth import get_current_user
+from app.database import get_db
+from app.models import LedgerOutbox, LedgerStatus, User
+from app.schemas import LedgerOperationRead
+
+
+router = APIRouter(prefix="/ledger", tags=["ledger"])
 
 
 def ledger_enabled() -> bool:
@@ -76,3 +83,13 @@ def verify_document_hash(client: LedgerClient, sha256_hash: str) -> dict[str, ob
         return client.document_by_hash(sha256_hash)
     except (httpx.HTTPError, OSError, RuntimeError) as exc:
         raise HTTPException(status_code=502, detail="Fabric verification failed") from exc
+
+
+@router.get("/operations", response_model=list[LedgerOperationRead])
+def list_operations(
+    limit: int = Query(default=50, ge=1, le=200),
+    db: Session = Depends(get_db),
+    _current_user: User = Depends(get_current_user),
+) -> list[LedgerOutbox]:
+    statement = select(LedgerOutbox).order_by(LedgerOutbox.created_at.desc()).limit(limit)
+    return list(db.scalars(statement))
