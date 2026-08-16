@@ -47,12 +47,14 @@ a nivel de bytes no.
 | Interfaz local | `http://127.0.0.1:8095/app/`, loopback/túnel SSH |
 | Interfaz pública | `https://fieldledger.aerosftp.com/app/`, Cloudflare Tunnel |
 | Conector público | `cloudflared` 2026.8.2, servicio systemd activo |
+| Kubernetes (Local) | K3s v1.36.3 LTS (`judicia-scraper`), containerd, CoreDNS, Traefik |
+| Kubernetes (Cloud) | Manifiestos Kustomize en `infra/k8s/` y Terraform EKS en `infra/terraform/` |
 | Fabric | `2.5.16` LTS, canal `fieldledgerchannel` |
 | Chaincode | `fieldledger` 1.0, secuencia 1 |
 | Endorsement | `AND('Org1MSP.peer','Org2MSP.peer')` |
 | Organizaciones | Org1/Operadora, Org2/Contratista, Org3/Auditor |
 | Gateway | Node 24.18.0, Fabric Gateway 1.12.0, puerto 3000 solo en Docker |
-| Base de datos | PostgreSQL 18.4, Alembic `20260814_0004` |
+| Base de datos | PostgreSQL 18.4, Alembic `20260816_0006` |
 | Objetos | MinIO `fieldledger-documents` |
 | Volúmenes de aplicación | `fieldledger_postgres-data`, `fieldledger_minio-data` |
 | Backups primarios | `/home/pi/fieldledger/backups` en la SD |
@@ -62,9 +64,8 @@ a nivel de bytes no.
 Los contenedores principales son `fieldledger-api-1`,
 `fieldledger-ledger-worker-1`, `fieldledger-postgres-1` y
 `fieldledger-minio-1`. El gateway es `fieldledger-gateway-gateway-1`. Fabric
-usa `orderer.example.com` y `peer0.org{1,2,3}.example.com`, además de los
-contenedores de chaincode bajo demanda. Solo la API está publicada en el host
-y únicamente sobre loopback.
+usa `orderer.example.com` y `peer0.org{1,2,3}.example.com`. El clúster K3s
+corre de forma aislada en la Pi con `cgroup_memory=1` habilitado en el kernel.
 
 ## Evidencia objetiva
 
