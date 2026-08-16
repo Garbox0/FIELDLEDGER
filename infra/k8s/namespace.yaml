@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: fieldledger
+  labels:
+    name: fieldledger
+    app.kubernetes.io/part-of: fieldledger

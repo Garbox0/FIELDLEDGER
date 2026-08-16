@@ -1,0 +1,16 @@
+aws_region             = "us-east-1"
+environment            = "prod"
+cluster_name           = "fieldledger-eks"
+kubernetes_version     = "1.30"
+vpc_cidr               = "10.0.0.0/16"
+availability_zones     = ["us-east-1a", "us-east-1b", "us-east-1c"]
+node_instance_types    = ["t3.medium", "t3a.medium"]
+node_min_size          = 2
+node_max_size          = 10
+node_desired_size      = 3
+enable_rds_postgres    = true
+rds_instance_class     = "db.t4g.medium"
+rds_allocated_storage  = 50
+rds_db_name            = "fieldledger"
+rds_master_username    = "fieldledger_admin"
+documents_bucket_name  = "fieldledger-evidence-documents-prod"

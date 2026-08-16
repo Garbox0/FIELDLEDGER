@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fieldledger-config
+  namespace: fieldledger
+  labels:
+    app.kubernetes.io/name: fieldledger-config
+    app.kubernetes.io/part-of: fieldledger
+data:
+  APP_ENV: "production"
+  DATABASE_URL: "postgresql+psycopg://fieldledger_app:fieldledger_pass@postgres-service.fieldledger.svc.cluster.local:5432/fieldledger"
+  MINIO_ENDPOINT: "minio-service.fieldledger.svc.cluster.local:9000"
+  MINIO_BUCKET: "fieldledger-documents"
+  MINIO_SECURE: "false"
+  FABRIC_GATEWAY_URL: "http://gateway-service.fieldledger.svc.cluster.local:3000"
+  LEDGER_ENABLED: "true"
+  PUBLIC_DEMO_VIEWER: "false"
+  TRUSTED_HOSTS: "localhost,127.0.0.1,fieldledger.aerosftp.com,*.aerosftp.com,*.cluster.local"
+  LOG_LEVEL: "INFO"

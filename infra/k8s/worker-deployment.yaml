@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fieldledger-worker
+  namespace: fieldledger
+  labels:
+    app.kubernetes.io/name: fieldledger-worker
+    app.kubernetes.io/part-of: fieldledger
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: fieldledger-worker
+  template:
+    metadata:
+      labels:
+        app: fieldledger-worker
+    spec:
+      initContainers:
+        - name: wait-for-api-ready
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for API service..."
+              until nc -z -v -w3 api-service.fieldledger.svc.cluster.local 80; do
+                echo "API service is unavailable - sleeping..."
+                sleep 2
+              done
+              echo "API service is up!"
+      containers:
+        - name: worker
+          image: ghcr.io/garbox0/fieldledger-api:latest
+          imagePullPolicy: IfNotPresent
+          command: ["python", "-m", "app.ledger_worker"]
+          envFrom:
+            - configMapRef:
+                name: fieldledger-config
+          env:
+            - name: INTERNAL_GATEWAY_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: fieldledger-secrets
+                  key: INTERNAL_GATEWAY_TOKEN
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
