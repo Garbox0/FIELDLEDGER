@@ -205,11 +205,9 @@ explícitamente backups verificados antiguos si aparece la alerta de 15 GiB.
 
 ## Próximo paso exacto
 
-Abrir `https://fieldledger.aerosftp.com/app/` y ejecutar manualmente el flujo
-completo cambiando entre operadora, contratista y auditor: alta, propuesta,
-evidencia, aprobación, commit y verificación original/modificada. Capturar dos
-o tres imágenes sin datos sensibles para el README/portfolio y corregir los
-detalles que aparezcan antes de comenzar telemetría.
+1. Monitorear el funcionamiento general en `https://fieldledger.aerosftp.com/app/`.
+2. Verificar periódicamente que los lotes de telemetría y evidencias anclen con normalidad en Fabric.
+3. Evaluar incorporación de ingesta MQTT en vivo y visualizaciones adicionales de series temporales de telemetría.
 
 ## Comandos para el relevo
 
