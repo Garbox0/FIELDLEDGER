@@ -101,7 +101,7 @@ def ready(
     return {"status": "ready"}
 
 
-@app.get("/favicon.ico", include_in_schema=False)
+@app.api_route("/favicon.ico", methods=["GET", "HEAD"], include_in_schema=False)
 def favicon() -> FileResponse:
     return FileResponse(STATIC_DIR / "fieldledger-logo.png", media_type="image/png")
 
