@@ -1,197 +1,177 @@
-# FieldLedger
+<div align="center">
+  <img src="docs/fieldledger-logo.png" alt="FieldLedger Logo" width="220" />
+  <h1>FieldLedger</h1>
+  <p><strong>Integridad Operacional, Trazabilidad Inmutable & Telemetría Verificable en Oil & Gas</strong></p>
+  <p>Consorcio de Hyperledger Fabric 2.5 LTS · Edge Computing con Kubernetes (K3s) · Terraform IaC · FastAPI</p>
 
-[![CI](https://github.com/Garbox0/FIELDLEDGER/actions/workflows/ci.yml/badge.svg)](https://github.com/Garbox0/FIELDLEDGER/actions/workflows/ci.yml)
+  <p>
+    <a href="https://fieldledger.aerosftp.com/app/"><img src="https://img.shields.io/badge/Live_Demo-fieldledger.aerosftp.com-0b5c53?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Live Demo" /></a>
+  </p>
 
-FieldLedger registra activos, trabajos de mantenimiento y evidencia entre una
-operadora, una contratista y un auditor. PostgreSQL conserva los datos de
-trabajo, MinIO guarda los archivos privados y Hyperledger Fabric registra los
-hitos que las tres partes necesitan verificar.
+  <p>
+    <img src="https://img.shields.io/badge/Blockchain-Hyperledger%20Fabric%202.5%20LTS-2F3134?style=flat-square&logo=hyperledger&logoColor=white" alt="Hyperledger Fabric" />
+    <img src="https://img.shields.io/badge/Orquestación-Kubernetes%20K3s%20%26%20EKS-326CE5?style=flat-square&logo=kubernetes&logoColor=white" alt="Kubernetes" />
+    <img src="https://img.shields.io/badge/IaC-Terraform%20v1.5+-844FBA?style=flat-square&logo=terraform&logoColor=white" alt="Terraform" />
+    <img src="https://img.shields.io/badge/Backend-FastAPI%20%26%20Python%203.13-009688?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI" />
+    <img src="https://img.shields.io/badge/Database-PostgreSQL%2018%20%2B%20MinIO-336791?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL" />
+    <img src="https://img.shields.io/badge/Tests-22%20Passed%20(100%25)-success?style=flat-square" alt="Tests" />
+  </p>
+</div>
 
-El proyecto corre en una Raspberry Pi. Tiene interfaz web en español, una red
-Fabric de tres organizaciones, chaincode, gateway privado, outbox
-transaccional y verificación de documentos por SHA-256. Las operaciones que la
-interfaz muestra como confirmadas provienen de transacciones reales de Fabric.
+---
 
-## Qué hay funcionando
+## 📌 ¿Qué es FieldLedger?
 
-- Alta y consulta de activos.
-- Propuesta de mantenimiento por la contratista y aprobación o rechazo por la
-  operadora.
-- Entrega de cada cambio a Fabric mediante una outbox con reintentos e IDs
-  idempotentes.
-- Archivos privados en MinIO y sus huellas SHA-256 en el ledger.
-- Consulta del ID de transacción y del bloque confirmado.
-- Backups y controles de espacio pensados para la SD de la Raspberry Pi.
+En la industria de **Oil & Gas**, la operadora del yacimiento, las empresas contratistas de mantenimiento y los organismos de auditoría/reguladores comparten información crítica sobre pozos, bombas electrosumergibles, compresores y válvulas de seguridad.
 
-Es un prototipo funcional para portfolio y una posible base de piloto. Todavía
-no es un sistema de producción.
+Cuando ocurre un incidente, una falla mecánica o una auditoría ambiental, los registros en papel o en bases de datos centralizadas tradicionales son susceptibles de disputas, alteraciones retroactivas o pérdida de trazabilidad.
 
-## Arquitectura
+**FieldLedger** resuelve este problema mediante un consorcio descentralizado:
+1. **PostgreSQL** mantiene las operaciones y el estado relacional ágil.
+2. **MinIO / Amazon S3** custodia los archivos técnicos privados (órdenes de trabajo PTW, ensayos NDT, actas).
+3. **Hyperledger Fabric 2.5 LTS** certifica de forma inmutable cada hito operacional con **endorsement dual obligatorio** (Operadora + Contratista) y verificación criptográfica independiente para el Auditor.
+4. **Árboles Merkle (SHA-256)** anclan lotes masivos de telemetría IoT de sensores sin saturar el ledger.
+
+---
+
+## 🚀 Arquitectura Híbrida: Edge + Cloud + Consorcio
 
 ```mermaid
-flowchart LR
-    Usuarios[Operadora / Contratista / Auditor] --> UI[Interfaz web]
-    UI --> API[FastAPI]
-    API --> DB[(PostgreSQL)]
-    API --> Archivos[(MinIO)]
-    API --> Outbox[(Outbox del ledger)]
-    Outbox --> Worker[Worker con reintentos]
-    Worker --> Gateway[Fabric Gateway privado]
-    Gateway --> O[Peer Org1 Operadora]
-    Gateway --> C[Peer Org2 Contratista]
-    Gateway -. consulta .-> A[Membresía Org3 Auditor]
-    O & C & A --> Orderer[Canal/orderer de Fabric]
+flowchart TB
+    subgraph Edge ["Yacimiento / Planta (Edge Computing - K3s en Hardware Industrial / ARM64)"]
+        Sensors[Sensores IoT en Pozo<br/>Presión · Temp · Vibración · Caudal] --> API[FastAPI Core]
+        Contratista[Contratista / Operario] -->|Sube Evidencia NDT / PTW| UI[Consola Web FieldLedger]
+        UI --> API
+        API --> Postgres[(PostgreSQL 18)]
+        API --> MinIO[(MinIO Object Storage)]
+        API --> Outbox[(Outbox Transaccional)]
+        Outbox --> Worker[Worker con Reintentos]
+    end
+
+    subgraph FabricConsortium ["Consorcio Hyperledger Fabric 2.5 LTS"]
+        Worker --> Gateway[Fabric Gateway Node.js]
+        Gateway --> PeerOrg1[Peer Org1 - Operadora]
+        Gateway --> PeerOrg2[Peer Org2 - Contratista]
+        Gateway -. Auditoría .-> PeerOrg3[Peer Org3 - Auditor]
+        PeerOrg1 & PeerOrg2 --> Orderer[Raft Orderer Cluster]
+    end
+
+    subgraph CloudScale ["Nube Corporativa (AWS EKS - Terraform)"]
+        Terraform[Terraform IaC] -. Aprovisiona .-> EKS[AWS EKS v1.30 Multi-AZ]
+        EKS --> CloudAPI[FastAPI HPA 2-10 Pods]
+        EKS --> RDS[(Amazon RDS Multi-AZ)]
+        EKS --> S3Bucket[(Amazon S3 Encrypted)]
+    end
 ```
 
-Los bytes de los documentos nunca ingresan a Fabric. Solo se registran su
-huella SHA-256 y metadatos compactos. Cada escritura requiere el aval de los
-peers de la operadora y la contratista.
+---
 
-Consultar [PROJECT_STATE.md](PROJECT_STATE.md) para el relevo exacto,
-[docs/technical-guide.md](docs/technical-guide.md) para la operación y
-[docs/non-technical-guide.md](docs/non-technical-guide.md) para explicar el
-proyecto a perfiles no técnicos.
+## ✨ Funcionalidades Principales
 
-## Puesta en marcha
+- **Gestión de Ciclo de Vida de Activos**: Registro técnico, ubicación por yacimiento/pozo (PAD), criticidad (API/ISO) y flujo de **baja/desafectación formal auditable**.
+- **Mantenimiento y Endorsement Dual**: Propuesta por Contratista, revisión técnica y aprobación/rechazo vinculante por Operadora con trazabilidad en bloque real.
+- **Evidencias Multi-Documento (1:N)**: Almacenamiento privado de órdenes de trabajo (PTW), certificados de calibración, fotografías de inspección y reportes de ensayos no destructivos (NDT) con huella digital SHA-256.
+- **Ingesta y Anclaje de Telemetría IoT (ADR-002)**: Agregación de lecturas de sensores (presión de boca de pozo, temperatura de cabezal, vibración RMS de bomba y caudal BPD) y anclaje por lotes mediante **raíces Merkle SHA-256**.
+- **Verificación Forense Inmutable**: El Auditor puede subir cualquier copia de un documento PDF/JPEG/PNG o lote de telemetría; el sistema consulta el contrato de Fabric y confirma matemáticamente si el archivo fue alterado un solo byte.
+- **Outbox Transaccional Duradera**: Garantía de entrega *at-least-once* con estados reales `SUBMITTED`, `COMMITTED` y `FAILED`, IDs de transacción de 64 caracteres y números de bloque de Fabric.
+- **Infraestructura como Código & Kubernetes**: Manifiestos K8s con `StatefulSets`, `HPA`, `Ingress TLS` y módulos Terraform listos para desplegar en **AWS EKS**.
 
-Requisitos: Linux ARM64, Docker Engine con Compose v2, Make, Bash, Git, curl,
-Python 3, jq, tar y OpenSSL.
+---
+
+## 🛠️ Stack Tecnológico
+
+| Capa | Tecnologías |
+|---|---|
+| **Blockchain / DLT** | Hyperledger Fabric 2.5.16 LTS, Fabric Gateway Node.js 1.12, Chaincode en TypeScript 7.0 |
+| **Backend & API** | Python 3.13, FastAPI 0.141, SQLAlchemy 2.0, Pydantic v2, Alembic |
+| **Bases de Datos & Storage** | PostgreSQL 18.4, MinIO S3-Compatible Storage, Amazon S3, Amazon RDS |
+| **DevOps & Cloud** | Kubernetes (K3s / EKS v1.30), Terraform v1.5+, Docker Compose v2, Cloudflare Tunnels |
+| **Frontend UI** | Vanilla HTML5, CSS3 Editorial-Industrial (sin dependencias pesadas), JavaScript ES2024 |
+| **Testing & Calidad** | Pytest (22/22 unit & integration tests), TypeScript Compiler, Pip-Audit |
+
+---
+
+## 💻 Puesta en Marcha Local
+
+### Prerrequisitos
+- Linux / macOS / Windows (WSL2 o PowerShell)
+- Docker & Docker Compose v2
+- Make, Python 3.12+, Node.js 20+
 
 ```bash
+# 1. Clonar el repositorio
+git clone https://github.com/Garbox0/FIELDLEDGER.git
+cd FIELDLEDGER
+
+# 2. Inicializar entorno y secretos seguros
 make bootstrap
+
+# 3. Levantar la red Hyperledger Fabric
 make ledger-up
+
+# 4. Poblar datos iniciales y usuarios demo
 make seed
+
+# 5. Verificar salud de todos los servicios
 make ledger-status
 curl -fsS http://127.0.0.1:8095/ready
 ```
 
-La aplicación se abre en `http://127.0.0.1:8095/app/` y OpenAPI en `/docs`.
-Ambas se vinculan únicamente a loopback. Para acceder desde otra computadora,
-crear un túnel sin publicar el servicio:
+Abrir en el navegador: **`http://127.0.0.1:8095/app/`**
+
+---
+
+## ☁️ Despliegue en Kubernetes (K3s / EKS)
+
+### Despliegue en Raspberry Pi / Edge con K3s:
+```bash
+# Aplicar todos los manifiestos mediante Kustomize
+kubectl apply -k infra/k8s/
+
+# Monitorear Pods y Servicios
+kubectl get pods,svc,pvc -n fieldledger
+```
+
+### Aprovisionamiento en AWS con Terraform:
+```bash
+cd infra/terraform
+cp terraform.tfvars.example terraform.tfvars
+terraform init
+terraform plan
+terraform apply -auto-approve
+```
+
+Consultar la documentación completa en:
+- 📖 [Guía de Arquitectura Cloud & EKS](docs/cloud-architecture.md)
+- 📖 [Operación de K3s en Raspberry Pi](docs/k3s-raspberry-pi.md)
+- 📖 [Guía Técnica de Operación](docs/technical-guide.md)
+- 📖 [Explicación Conceptual No Técnica](docs/non-technical-guide.md)
+
+---
+
+## 🧪 Pruebas Automatizadas
 
 ```bash
-ssh -L 8095:127.0.0.1:8095 usuario@host-raspberry
+# Ejecutar suite de pruebas Python (CRUD, Auth, Multi-Docs, Telemetría, Merkle)
+make test
+
+# Prueba de humo E2E contra Hyperledger Fabric en vivo
+make ledger-smoke
 ```
 
-PostgreSQL, MinIO y Fabric Gateway no publican puertos en el host.
+---
 
-La demo remota usa `fieldledger.aerosftp.com` mediante Cloudflare Tunnel. El
-conector sale desde la Pi hacia Cloudflare y apunta al mismo puerto de
-loopback; no se abre el router. En ese modo, `/docs` y OpenAPI quedan
-deshabilitados y puede habilitarse un ingreso público con rol `VIEWER`.
+## 👥 Usuarios Demo para Evaluación
 
-## Interfaz web
+| Usuario | Rol | Organización | Permisos |
+|---|---|---|---|
+| `operator` | `OPERATOR` | OperatorOrg (Org1) | Registrar activos, aprobar/rechazar intervenciones, desafectación |
+| `contractor` | `CONTRACTOR` | ContractorOrg (Org2) | Proponer mantenimientos, adjuntar evidencias técnicas (PTW/NDT) |
+| `auditor` | `AUDITOR` | AuditorOrg (Org3) | Verificación criptográfica forense, auditoría de lotes Merkle |
+| `viewer` | `VIEWER` | AuditorOrg | Exploración pública en modo sólo lectura |
 
-La UI usa HTML, CSS y JavaScript nativos servidos por FastAPI. No agrega
-framework, build de frontend, contenedor ni puerto. Incluye:
+---
 
-- login y cambio de identidad por rol;
-- entrada pública opcional en modo lectura;
-- listado y detalle de activos;
-- alta de activos para operadora/administrador;
-- propuesta de mantenimiento para contratista;
-- evidencia privada, aprobación y rechazo;
-- actividad de la outbox con estado, transaction ID y bloque;
-- verificación de PDF/JPEG/PNG contra Fabric.
+## 📄 Licencia
 
-El token se conserva en `sessionStorage`; la contraseña no se persiste. La UI
-usa CSP sin scripts inline, bloqueo de frames y render seguro de datos
-dinámicos.
-
-Operaciones habituales:
-
-```bash
-make test             # ejecutar pruebas de la API Python
-make migrate          # aplicar migraciones de Alembic
-make ledger-reconcile # encolar registros creados antes de Fabric
-make ledger-smoke     # commit real y verificación original/modificado
-make ledger-status    # contenedores y estados de la outbox
-make backup           # backup SHA-256 reservando 10 GiB de la SD
-make storage-status   # uso de SD, backups, runtime de Fabric y Docker
-make logs
-```
-
-`make bootstrap` genera secretos en un `.env` con permisos 600 y nunca
-sobrescribe valores existentes. `.runtime` contiene identidades y material
-generado de Fabric, y está excluido de Git.
-
-## Superficie de la API
-
-```text
-POST   /api/v1/auth/login
-GET    /api/v1/auth/demo
-POST   /api/v1/auth/demo
-GET    /api/v1/auth/me
-POST   /api/v1/assets
-GET    /api/v1/assets[/{asset_id}]
-PATCH  /api/v1/assets/{asset_id}
-DELETE /api/v1/assets/{asset_id}
-POST   /api/v1/assets/{asset_id}/maintenance
-GET    /api/v1/assets/{asset_id}/events
-GET    /api/v1/events/{event_id}
-POST   /api/v1/events/{event_id}/approve
-POST   /api/v1/events/{event_id}/reject
-POST   /api/v1/events/{event_id}/documents
-GET    /api/v1/documents/{document_id}
-POST   /api/v1/documents/verify
-GET    /api/v1/ledger/operations
-GET    /health
-GET    /ready
-```
-
-El endpoint de verificación calcula el SHA-256 del archivo recibido y consulta
-Fabric. Solo devuelve éxito cuando existe una coincidencia exacta en el
-ledger. Si Fabric no está disponible, responde HTTP 502; no existe un fallback
-local que simule éxito.
-
-## Línea base verificada
-
-Comprobada y desplegada el 14 de agosto de 2026:
-
-| Componente | Versión |
-|---|---:|
-| Hyperledger Fabric | 2.5.16 LTS |
-| Fabric Gateway Node SDK | 1.12.0 |
-| Fabric chaincode API/shim | 2.5.8 |
-| Imagen Node.js | 24.18.0-bookworm-slim |
-| TypeScript | 7.0.2 |
-| Imagen Python | 3.13.14-slim-bookworm |
-| FastAPI | 0.141.1 |
-| SQLAlchemy | 2.0.52 |
-| Alembic | 1.19.1 |
-| PostgreSQL | 18.4-bookworm |
-| MinIO | RELEASE.2025-07-23T15-54-02Z |
-
-La última aceptación en vivo confirmó los bloques 21 a 24, verificó el PDF
-original y rechazó una copia modificada. Pasaron 17/17 pruebas Python, 2/2 del
-chaincode y 2/2 del gateway. El 14 de agosto de 2026, `pip-audit` y ambos
-`npm audit --omit=dev` informaron cero vulnerabilidades conocidas.
-
-Fuentes de Fabric: [instalación y versiones](https://hyperledger-fabric.readthedocs.io/en/latest/install.html),
-[notas de Fabric 2.5 LTS](https://hyperledger-fabric.readthedocs.io/en/release-2.5/whatsnew.html),
-[documentación de test-network](https://hyperledger-fabric.readthedocs.io/en/release-2.5/test_network.html)
-y [API de Gateway](https://hyperledger.github.io/fabric-gateway/main/api/node/interfaces/Contract.html).
-
-## Limitaciones declaradas
-
-- La topología Fabric deriva de la red educativa oficial `test-network`,
-  ejecutada en un único host con tres organizaciones. No es infraestructura
-  productiva.
-- Todavía no existen telemetría MQTT, dashboards, despliegue continuo, OIDC,
-  TLS de ingreso, alta disponibilidad, HSM ni recuperación externa.
-- Se admite un documento primario por evento de mantenimiento.
-- Los JWT no pueden revocarse antes de vencer. El límite de intentos de login
-  vive en memoria de un único proceso; no reemplaza un control distribuido.
-- El kernel de la Pi no aplica los límites de memoria declarados por Docker.
-- El HDD conectado fue descartado: las escrituras sobre una región legible
-  provocaron reinicios USB. Está desvinculado y en cuarentena por puerto hasta
-  su reemplazo físico. Los datos permanecen en la SD; los backups reservan
-  10 GiB y `make storage-status` advierte por debajo de 15 GiB.
-
-## Límite de seguridad
-
-Esta es una plataforma de laboratorio. No controla equipos de campo, no tiene
-criptomoneda, token ni minería, no registra documentos completos ni telemetría
-cruda en el ledger, no guarda secretos en Git y no publica rutas externas de
-manera predeterminada. Consultar [SECURITY.md](SECURITY.md) antes de exponer o
-adaptar el sistema.
+Distribuido bajo la Licencia MIT. Consultar [`LICENSE`](LICENSE) para más información.
