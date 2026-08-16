@@ -3,7 +3,7 @@ from pathlib import Path
 
 import httpx
 from fastapi import Depends, FastAPI, Request, Response, status
-from fastapi.responses import RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from minio.error import MinioException
 from sqlalchemy import text
@@ -56,9 +56,11 @@ async def protect_web_ui(request: Request, call_next):
     response = await call_next(request)
     if request.url.path == "/" or request.url.path.startswith("/app"):
         response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; connect-src 'self'; img-src 'self' data:; "
+            "default-src 'self'; "
+            "connect-src 'self' https://cloudflareinsights.com https://*.cloudflareinsights.com; "
+            "img-src 'self' data:; "
             "style-src 'self' 'unsafe-inline'; "
-            "script-src 'self' https://static.cloudflareinsights.com; "
+            "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://*.cloudflareinsights.com; "
             "object-src 'none'; "
             "base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
         )
@@ -97,6 +99,11 @@ def ready(
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
         return {"status": "not_ready"}
     return {"status": "ready"}
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon() -> FileResponse:
+    return FileResponse(STATIC_DIR / "fieldledger-logo.png", media_type="image/png")
 
 
 @app.get("/", include_in_schema=False)

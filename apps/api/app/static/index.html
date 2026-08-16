@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="FieldLedger: integridad de activos, mantenimiento y telemetría verificable en Oil &amp; Gas.">
   <title>FieldLedger · Integridad Operacional &amp; Blockchain en Oil &amp; Gas</title>
-  <link rel="stylesheet" href="/app/styles.css?v=20260815.4">
-  <script src="/app/app.js?v=20260815.4" defer></script>
+  <link rel="icon" type="image/png" href="/app/fieldledger-logo.png?v=20260815.5">
+  <link rel="stylesheet" href="/app/styles.css?v=20260815.5">
+  <script src="/app/app.js?v=20260815.5" defer></script>
 </head>
 <body>
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
@@ -123,7 +124,7 @@
           <div class="asset-grid">
             <div class="panel asset-list-panel">
               <div class="panel-toolbar">
-                <label class="search-box" for="asset-search"><span aria-hidden="true">⌕</span><input id="asset-search" type="search" placeholder="Buscar por ID, nombre, yacimiento o tipo"></label>
+                <label class="search-box" for="asset-search"><span aria-hidden="true">⌕</span><input id="asset-search" type="search" autocomplete="off" placeholder="Buscar por ID, nombre, yacimiento o tipo"></label>
                 <span id="asset-list-count" class="count-label">0 activos</span>
               </div>
               <div id="asset-list" class="asset-list" aria-live="polite"></div>
@@ -290,15 +291,15 @@
     <form id="asset-form" class="dialog-card">
       <div class="dialog-heading"><div><p class="eyebrow">NUEVO REGISTRO</p><h2>Registrar activo</h2></div><button class="dialog-close" type="button" data-close="asset-dialog" aria-label="Cerrar">×</button></div>
       <div class="form-grid">
-        <label>ID del activo<input name="asset_id" required minlength="3" maxlength="64" pattern="[A-Z0-9][A-Z0-9_-]+" placeholder="VALVE-VM-0042"></label>
-        <label>Tipo de Equipo<input name="asset_type" required minlength="2" maxlength="64" pattern="[A-Z0-9_-]+" placeholder="VALVE, ESP_PUMP, COMPRESSOR, WELLHEAD"></label>
-        <label class="span-2">Nombre<input name="name" required minlength="2" maxlength="160" placeholder="Válvula de seguridad de boca de pozo"></label>
-        <label>Yacimiento / Sitio<input name="site" required minlength="2" maxlength="160" placeholder="Vaca Muerta - Bloque Norte"></label>
-        <label>Ubicación / Pozo<input name="location" maxlength="160" placeholder="PAD-12 / WELL-137"></label>
-        <label>Fabricante<input name="manufacturer" maxlength="160" placeholder="Cameron / Schlumberger"></label>
-        <label>Número de serie<input name="serial_number" maxlength="128" placeholder="SN-883721"></label>
-        <label>Operadora<input name="operator" maxlength="160" placeholder="OperatorOrg"></label>
-        <label>Fecha de instalación<input name="installation_date" type="date"></label>
+        <label>ID del activo<input name="asset_id" autocomplete="off" required minlength="3" maxlength="64" pattern="[A-Z0-9][A-Z0-9_-]+" placeholder="VALVE-VM-0042"></label>
+        <label>Tipo de Equipo<input name="asset_type" autocomplete="off" required minlength="2" maxlength="64" pattern="[A-Z0-9_-]+" placeholder="VALVE, ESP_PUMP, COMPRESSOR, WELLHEAD"></label>
+        <label class="span-2">Nombre<input name="name" autocomplete="off" required minlength="2" maxlength="160" placeholder="Válvula de seguridad de boca de pozo"></label>
+        <label>Yacimiento / Sitio<input name="site" autocomplete="off" required minlength="2" maxlength="160" placeholder="Vaca Muerta - Bloque Norte"></label>
+        <label>Ubicación / Pozo<input name="location" autocomplete="off" maxlength="160" placeholder="PAD-12 / WELL-137"></label>
+        <label>Fabricante<input name="manufacturer" autocomplete="off" maxlength="160" placeholder="Cameron / Schlumberger"></label>
+        <label>Número de serie<input name="serial_number" autocomplete="off" maxlength="128" placeholder="SN-883721"></label>
+        <label>Operadora<input name="operator" autocomplete="off" maxlength="160" placeholder="OperatorOrg"></label>
+        <label>Fecha de instalación<input name="installation_date" autocomplete="off" type="date"></label>
         <label>Estado inicial<select name="status"><option value="ACTIVE">ACTIVE (Activo)</option><option value="MAINTENANCE">MAINTENANCE (En mantenimiento)</option><option value="OUT_OF_SERVICE">OUT_OF_SERVICE (Fuera de servicio)</option></select></label>
         <label>Criticidad (API/ISO)<select name="criticality"><option value="LOW">LOW</option><option value="MEDIUM" selected>MEDIUM</option><option value="HIGH">HIGH</option><option value="CRITICAL">CRITICAL</option></select></label>
       </div>
@@ -313,10 +314,10 @@
       <div class="dialog-heading"><div><p class="eyebrow">PROPUESTA DE CONTRATISTA</p><h2>Nuevo mantenimiento</h2></div><button class="dialog-close" type="button" data-close="maintenance-dialog" aria-label="Cerrar">×</button></div>
       <p id="maintenance-asset-label" class="dialog-context">—</p>
       <div class="form-grid">
-        <label>ID del evento<input name="event_id" required minlength="3" maxlength="64" pattern="[A-Z0-9][A-Z0-9_-]+"></label>
+        <label>ID del evento<input name="event_id" autocomplete="off" required minlength="3" maxlength="64" pattern="[A-Z0-9][A-Z0-9_-]+"></label>
         <label>Tipo de Trabajo<select name="event_type"><option value="PREVENTIVE_MAINTENANCE">Mantenimiento preventivo</option><option value="CORRECTIVE_MAINTENANCE">Mantenimiento correctivo</option><option value="PART_REPLACEMENT">Reemplazo de componente</option><option value="INSPECTION">Inspección de integridad</option><option value="PRESSURE_TEST">Prueba hidrostática</option><option value="CALIBRATION">Calibración de instrumentos</option><option value="CERTIFICATION">Certificación de aptitud</option></select></label>
-        <label class="span-2">Descripción del Trabajo &amp; Normativa<textarea name="description" required minlength="3" maxlength="4000" rows="4" placeholder="Detalle del trabajo técnico realizado, normativa aplicada (API/ASME/ISO) y observaciones"></textarea></label>
-        <input name="idempotency_key" type="hidden">
+        <label class="span-2">Descripción del Trabajo &amp; Normativa<textarea name="description" autocomplete="off" required minlength="3" maxlength="4000" rows="4" placeholder="Detalle del trabajo técnico realizado, normativa aplicada (API/ASME/ISO) y observaciones"></textarea></label>
+        <input name="idempotency_key" autocomplete="off" type="hidden">
       </div>
       <div class="dialog-actions"><button class="button button-ghost" type="button" data-close="maintenance-dialog">Cancelar</button><button class="button button-primary" type="submit">Enviar propuesta</button></div>
     </form>
@@ -340,7 +341,7 @@
           </select>
         </label>
         <label class="span-2">Notas / Observaciones de la Evidencia
-          <input name="notes" maxlength="500" placeholder="Ej: Prueba hidrostática 3000 PSI x 15 min según API 6A">
+          <input name="notes" autocomplete="off" maxlength="500" placeholder="Ej: Prueba hidrostática 3000 PSI x 15 min según API 6A">
         </label>
       </div>
       <label class="drop-zone drop-zone-spaced" for="document-file"><span class="upload-icon" aria-hidden="true">↑</span><strong>Seleccionar archivo</strong><span id="document-file-name">PDF, JPEG o PNG · máximo 10 MiB</span><input id="document-file" name="file" type="file" accept="application/pdf,image/jpeg,image/png" required></label>
@@ -354,7 +355,7 @@
     <form id="reject-form" class="dialog-card dialog-small">
       <div class="dialog-heading"><div><p class="eyebrow">REVISIÓN DE OPERADORA</p><h2>Rechazar propuesta</h2></div><button class="dialog-close" type="button" data-close="reject-dialog" aria-label="Cerrar">×</button></div>
       <p id="reject-event-label" class="dialog-context">—</p>
-      <label>Motivo Técnico del Rechazo<textarea name="reason" required minlength="3" maxlength="2000" rows="4" placeholder="Indicar el motivo por el cual no se aprueba la intervención"></textarea></label>
+      <label>Motivo Técnico del Rechazo<textarea name="reason" autocomplete="off" required minlength="3" maxlength="2000" rows="4" placeholder="Indicar el motivo por el cual no se aprueba la intervención"></textarea></label>
       <div class="dialog-actions"><button class="button button-ghost" type="button" data-close="reject-dialog">Cancelar</button><button class="button button-danger" type="submit">Confirmar rechazo</button></div>
     </form>
   </dialog>
@@ -365,7 +366,7 @@
       <div class="dialog-heading"><div><p class="eyebrow">OPERADORA · BAJA AUDITABLE</p><h2>Desafectar activo</h2></div><button class="dialog-close" type="button" data-close="decommission-dialog" aria-label="Cerrar">×</button></div>
       <p id="decommission-asset-label" class="dialog-context">—</p>
       <p class="muted">En Oil &amp; Gas los activos no se eliminan físicamente. La desafectación registra el abandono/baja formal con aval inmutable en Hyperledger Fabric.</p>
-      <label>Motivo / Dictamen de Baja<textarea name="reason" required minlength="5" maxlength="2000" rows="4" placeholder="Ej: Agotamiento de reservorio, fin de vida útil de fatiga y taponamiento según Res. 5/96 de Secretaría de Energía"></textarea></label>
+      <label>Motivo / Dictamen de Baja<textarea name="reason" autocomplete="off" required minlength="5" maxlength="2000" rows="4" placeholder="Ej: Agotamiento de reservorio, fin de vida útil de fatiga y taponamiento según Res. 5/96 de Secretaría de Energía"></textarea></label>
       <div class="dialog-actions"><button class="button button-ghost" type="button" data-close="decommission-dialog">Cancelar</button><button class="button button-danger" type="submit">Confirmar baja en Ledger</button></div>
     </form>
   </dialog>
